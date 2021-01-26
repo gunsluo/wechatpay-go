@@ -88,8 +88,8 @@ type PayRespone struct {
 }
 
 // Pay send a transaction and invoke wechat payment
-func (r *PayRequest) Do(ctx context.Context, c *Client) (*PayRespone, error) {
-	url := r.url(c.opts.domain)
+func (r *PayRequest) Do(ctx context.Context, c Client) (*PayRespone, error) {
+	url := r.url(c.Config().Options().Domain)
 
 	resp := &PayRespone{}
 	if err := c.Do(ctx, http.MethodPost, url, r).Scan(resp); err != nil {

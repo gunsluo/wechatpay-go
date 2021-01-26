@@ -16,11 +16,12 @@ package wechatpay
 
 // Config is config for mechat pay, all fileds is required.
 type Config struct {
-	AppId string    `json:"app_id"`
-	MchId string    `json:"mch_id"`
-	Cert  CertSuite `json:"cert"`
+	AppId string
+	MchId string
+	Cert  CertSuite
 
-	Apiv3Secret string `json:"api_secret"`
+	Apiv3Secret string
+	opts        options
 }
 
 // CertSuite is the suite for api cert
@@ -33,17 +34,21 @@ type CertSuite struct {
 // Option is optional configuration for mechat pay.
 type Option func(o *options)
 
+func (c *Config) Options() *options {
+	return &c.opts
+}
+
 type options struct {
-	domain  string
-	schema  string
-	certUrl string
+	Domain  string
+	Schema  string
+	CertUrl string
 }
 
 func defaultOptions() options {
 	return options{
-		schema:  defaultSchema,
-		domain:  defaultDomain,
-		certUrl: defaultDomain + "/v3/certificates",
+		Schema:  defaultSchema,
+		Domain:  defaultDomain,
+		CertUrl: defaultDomain + "/v3/certificates",
 	}
 }
 

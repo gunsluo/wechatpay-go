@@ -26,8 +26,8 @@ type CloseRequest struct {
 }
 
 // Do send the request of close transaction
-func (r *CloseRequest) Do(ctx context.Context, c *Client) error {
-	url := r.url(c.opts.domain)
+func (r *CloseRequest) Do(ctx context.Context, c Client) error {
+	url := r.url(c.Config().Options().Domain)
 
 	if err := c.Do(ctx, http.MethodPost, url, r).Error(); err != nil {
 		return err

@@ -15,6 +15,6 @@
 package wechatpay
 
 // Notify
-func (c *Client) Notify() error {
+func (c *client) Notify() error {
 	return nil
 }
