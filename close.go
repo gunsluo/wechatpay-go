@@ -14,7 +14,27 @@
 
 package wechatpay
 
-// CloseTransaction
-func (c *Client) CloseTransaction() error {
+import (
+	"context"
+	"net/http"
+)
+
+// CloseRequest is the request for close transaction
+type CloseRequest struct {
+	MchId      string `json:"mchid"`
+	OutTradeNo string `json:"-"`
+}
+
+// Do send the request of close transaction
+func (r *CloseRequest) Do(ctx context.Context, c *Client) error {
+	url := r.url(c.opts.domain)
+
+	if err := c.Do(ctx, http.MethodPost, url, r).Error(); err != nil {
+		return err
+	}
+
 	return nil
+}
+func (r *CloseRequest) url(domain string) string {
+	return domain + "/v3/pay/transactions/out-trade-no/" + r.OutTradeNo + "/close"
 }

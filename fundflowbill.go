@@ -14,7 +14,47 @@
 
 package wechatpay
 
-// FundflowBill
-func (c *Client) FundflowBill() error {
+import (
+	"context"
+	"net/http"
+	"net/url"
+)
+
+// FundflowBilllRequest is the request for trade bill
+type FundflowBilllRequest struct {
+	BillDate    string `json:"-"`
+	AccountType string `json:"-"`
+	TarType     string `json:"-"`
+}
+
+// FundflowBilllRespone is the response for trade bill
+type FundflowBilllRespone struct {
+	HashType    string `json:"hash_type"`
+	HashValue   string `json:"hash_value"`
+	DownloadUrl string `json:"download_url"`
+}
+
+// Do send the request of close transaction
+func (r *FundflowBilllRequest) Do(ctx context.Context, c *Client) error {
+	url := r.url(c.opts.domain)
+
+	resp := &FundflowBilllRespone{}
+	if err := c.Do(ctx, http.MethodGet, url).Scan(resp); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (r *FundflowBilllRequest) url(domain string) string {
+	v := url.Values{}
+	v.Add("bill_date", r.BillDate)
+	if r.AccountType != "" {
+		v.Add("account_type", r.AccountType)
+	}
+	if r.TarType != "" {
+		v.Add("tar_type", r.TarType)
+	}
+
+	return domain + "/v3/bill/fundflowbill?" + v.Encode()
 }

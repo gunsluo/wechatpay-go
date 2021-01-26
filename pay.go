@@ -17,6 +17,7 @@ package wechatpay
 import (
 	"context"
 	"net/http"
+	"strings"
 )
 
 // PayAmount is tatal amount paid, have total and currency.
@@ -69,16 +70,16 @@ type PayRequest struct {
 	Amount      PayAmount     `json:"amount"`
 	Detail      *PayDetail    `json:"detail,omitempty"`
 	SceneInfo   *PaySceneInfo `json:"scene_info,omitempty"`
-	PayMethod   PayMethod     `json:"-"`
+	TradeType   TradeType     `json:"-"`
 }
 
-type PayMethod string
+type TradeType string
 
 const (
-	JSAPI  PayMethod = "jsapi"
-	APP    PayMethod = "app"
-	H5     PayMethod = "h5"
-	Native PayMethod = "native"
+	JSAPI  TradeType = "JSAPI"
+	APP    TradeType = "APP"
+	H5     TradeType = "H5"
+	Native TradeType = "NATIVE"
 )
 
 // PayRespone is response when send a payment
@@ -88,7 +89,7 @@ type PayRespone struct {
 
 // Pay send a transaction and invoke wechat payment
 func (r *PayRequest) Do(ctx context.Context, c *Client) (*PayRespone, error) {
-	url := r.url(c.opts.domain, string(r.PayMethod))
+	url := r.url(c.opts.domain)
 
 	resp := &PayRespone{}
 	if err := c.Do(ctx, http.MethodPost, url, r).Scan(resp); err != nil {
@@ -98,10 +99,11 @@ func (r *PayRequest) Do(ctx context.Context, c *Client) (*PayRespone, error) {
 	return resp, nil
 }
 
-func (r *PayRequest) url(domain string, payMethod string) string {
-	if payMethod == "" {
-		payMethod = string(Native)
+func (r *PayRequest) url(domain string) string {
+	tradeType := string(r.TradeType)
+	if tradeType == "" {
+		tradeType = string(Native)
 	}
 
-	return domain + "/v3/pay/transactions/" + payMethod
+	return domain + "/v3/pay/transactions/" + strings.ToLower(tradeType)
 }

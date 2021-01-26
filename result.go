@@ -18,9 +18,18 @@ func (r *Result) Scan(dest interface{}) error {
 		return r.Err
 	}
 
+	if len(r.Body) == 0 {
+		return nil
+	}
+
 	if err := json.Unmarshal(r.Body, dest); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// Error return the error.
+func (r *Result) Error() error {
+	return r.Err
 }

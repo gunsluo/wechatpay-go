@@ -14,7 +14,51 @@
 
 package wechatpay
 
-// TradeBill
-func (c *Client) TradeBill() error {
+import (
+	"context"
+	"net/http"
+	"net/url"
+)
+
+// TradeBillRequest is the request for trade bill
+type TradeBillRequest struct {
+	BillDate string `json:"-"`
+	SubMchid string `json:"-"`
+	BillType string `json:"-"`
+	TarType  string `json:"-"`
+}
+
+// TradeBillRespone is the response for trade bill
+type TradeBillRespone struct {
+	HashType    string `json:"hash_type"`
+	HashValue   string `json:"hash_value"`
+	DownloadUrl string `json:"download_url"`
+}
+
+// Do send the request of close transaction
+func (r *TradeBillRequest) Do(ctx context.Context, c *Client) error {
+	url := r.url(c.opts.domain)
+
+	resp := &TradeBillRespone{}
+	if err := c.Do(ctx, http.MethodGet, url).Scan(resp); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (r *TradeBillRequest) url(domain string) string {
+	v := url.Values{}
+	v.Add("bill_date", r.BillDate)
+	if r.SubMchid != "" {
+		v.Add("sub_mchid", r.SubMchid)
+	}
+	if r.BillType != "" {
+		v.Add("bill_type", r.BillType)
+	}
+	if r.TarType != "" {
+		v.Add("tar_type", r.TarType)
+	}
+
+	return domain + "/v3/bill/tradebill?" + v.Encode()
 }
