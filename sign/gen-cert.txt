@@ -1,0 +1,14 @@
+
+# private key
+openssl genrsa -out test-private-key.pem 2048
+openssl
+> pkcs8 -topk8 -inform PEM -in test-private-key.pem -outform PEM -nocrypt -out test-private-key_pkcs8.pem
+
+# public key
+rsa -in test-private-key.pem -pubout -out test-public-key.pem
+
+# cert
+openssl req -new -key test-private-key.pem -out test-cert-req.csr
+openssl x509 -req -days 3650 -in test-cert-req.csr -signkey test-private-key.pem -out test-cert.crt
+openssl x509 -req -days 3650 -in test-cert-req.csr -signkey test-private-key.pem -out test-cert.pem
+
