@@ -89,8 +89,8 @@ type TransactionGoodDetail struct {
 }
 
 // Do send the request of query transaction
-func (r *QueryRequest) Do(ctx context.Context, c *Client) error {
-	url := r.url(c.opts.domain)
+func (r *QueryRequest) Do(ctx context.Context, c Client) error {
+	url := r.url(c.Config().Options().Domain)
 
 	resp := &QueryRespone{}
 	if err := c.Do(ctx, http.MethodGet, url).Scan(resp); err != nil {

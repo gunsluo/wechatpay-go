@@ -1,0 +1,14 @@
+
+# private key
+openssl genrsa -out mock_private_key.pem 2048
+openssl
+> pkcs8 -topk8 -inform PEM -in mock_private_key.pem -outform PEM -nocrypt -out mock_private_key_pkcs8.pem
+
+# public key
+rsa -in mock_private_key.pem -pubout -out mock_public_key.pem
+
+# cert
+openssl req -new -key mock_private_key.pem -out mock_cert_req.csr
+openssl x509 -req -days 3650 -in mock_cert_req.csr -signkey mock_private_key.pem -out mock_cert.crt
+openssl x509 -req -days 3650 -in mock_cert_req.csr -signkey mock_private_key.pem -out mock_cert.pem
+

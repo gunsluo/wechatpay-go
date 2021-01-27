@@ -45,8 +45,8 @@ type EncryptCertificate struct {
 }
 
 // Do get certificates from wechat pay
-func (r *CertificatesRequest) Do(ctx context.Context, c *Client) (*CertificatesRespone, error) {
-	url := c.opts.certUrl
+func (r *CertificatesRequest) Do(ctx context.Context, c Client) (*CertificatesRespone, error) {
+	url := c.Config().Options().CertUrl
 
 	resp := &CertificatesRespone{}
 	if err := c.Do(ctx, http.MethodGet, url).Scan(resp); err != nil {

@@ -36,8 +36,8 @@ type TradeBillRespone struct {
 }
 
 // Do send the request of close transaction
-func (r *TradeBillRequest) Do(ctx context.Context, c *Client) error {
-	url := r.url(c.opts.domain)
+func (r *TradeBillRequest) Do(ctx context.Context, c Client) error {
+	url := r.url(c.Config().Options().Domain)
 
 	resp := &TradeBillRespone{}
 	if err := c.Do(ctx, http.MethodGet, url).Scan(resp); err != nil {
