@@ -39,6 +39,8 @@ type client struct {
 
 	privateKey *rsa.PrivateKey
 	publicKeys map[string]*rsa.PublicKey
+
+	genRequestSignature func(string, string, []byte) *sign.RequestSignature
 }
 
 // NewClient creates a new client with configuration from cfg.
@@ -92,6 +94,10 @@ func newClient(cfg Config, opts ...Option) (*client, error) {
 		c.privateKey = privateKey
 	}
 
+	c.genRequestSignature = func(method, url string, body []byte) *sign.RequestSignature {
+		return sign.NewRequestSignature(method, url, body)
+	}
+
 	return c, nil
 }
 
@@ -117,7 +123,7 @@ func (c *client) Do(ctx context.Context, method, url string, req ...interface{})
 	if !isCertRequest {
 		// check and load certificates
 		if err := c.lazyLoadCertificates(ctx); err != nil {
-			return &Result{Err: err}
+			return &Result{Err: NewInternalError(err)}
 		}
 	}
 
@@ -126,11 +132,11 @@ func (c *client) Do(ctx context.Context, method, url string, req ...interface{})
 	if len(req) > 0 {
 		buffer, err := json.Marshal(req[0])
 		if err != nil {
-			return &Result{Err: err}
+			return &Result{Err: NewInternalError(err)}
 		}
 		reqBuffer = buffer
 	}
-	reqSign := sign.NewRequestSignature(method, url, reqBuffer)
+	reqSign := c.genRequestSignature(method, url, reqBuffer)
 
 	result := c.do(ctx, reqSign)
 	if result.Err != nil {
@@ -141,12 +147,12 @@ func (c *client) Do(ctx context.Context, method, url string, req ...interface{})
 	if isCertRequest {
 		// upgrade certs and then verify signature.
 		if err := c.upgradeCertificate(result.Body); err != nil {
-			return &Result{Err: err}
+			return &Result{Err: NewInternalError(err)}
 		}
 	}
 
 	if err := c.VerifySignature(result); err != nil {
-		result.Err = err
+		result.Err = NewInternalError(err)
 	}
 
 	return result
@@ -175,7 +181,10 @@ func (c *client) do(ctx context.Context, reqSign *sign.RequestSignature) *Result
 	httpReq.Header.Set("Accept", "application/json")
 
 	// 4. send the request
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: c.config.opts.transport,
+		Timeout:   c.config.opts.timeout,
+	}
 	httpResp, err := client.Do(httpReq)
 	if err != nil {
 		return &Result{Err: NewInternalError(err)}
@@ -279,7 +288,7 @@ func (c *client) upgradeCertificate(data []byte) error {
 func (c *client) VerifySignature(result *Result) error {
 	publicKey, ok := c.publicKeys[result.SerialNo]
 	if !ok {
-		return errors.New("no cert")
+		return errors.New("not found cert")
 	}
 
 	respSign := &sign.ResponseSignature{

@@ -14,6 +14,11 @@
 
 package wechatpay
 
+import (
+	"net/http"
+	"time"
+)
+
 // Config is config for mechat pay, all fileds is required.
 type Config struct {
 	AppId string
@@ -34,6 +39,20 @@ type CertSuite struct {
 // Option is optional configuration for mechat pay.
 type Option func(o *options)
 
+// Transport set transport to http client
+func Transport(transport http.RoundTripper) Option {
+	return func(o *options) {
+		o.transport = transport
+	}
+}
+
+// Timeout set timeout for http client
+func Timeout(timeout time.Duration) Option {
+	return func(o *options) {
+		o.timeout = timeout
+	}
+}
+
 func (c *Config) Options() *options {
 	return &c.opts
 }
@@ -42,6 +61,9 @@ type options struct {
 	Domain  string
 	Schema  string
 	CertUrl string
+
+	transport http.RoundTripper
+	timeout   time.Duration
 }
 
 func defaultOptions() options {
