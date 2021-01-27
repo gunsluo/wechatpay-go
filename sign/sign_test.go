@@ -15,6 +15,8 @@
 package sign
 
 import (
+	"crypto/rsa"
+	"math/big"
 	"testing"
 )
 
@@ -22,6 +24,7 @@ func TestMarshalRequestSignature(t *testing.T) {
 	var ts int64 = 1611368330
 	cases := []struct {
 		req    *RequestSignature
+		pass   bool
 		expect string
 	}{
 		{
@@ -31,6 +34,7 @@ func TestMarshalRequestSignature(t *testing.T) {
 				Timestamp: ts,
 				Nonce:     "AF1404CC2980FB414C99C0B98883BD42",
 			},
+			true,
 			"GET\n/v3/certificates\n1611368330\nAF1404CC2980FB414C99C0B98883BD42\n\n",
 		},
 		{
@@ -41,6 +45,7 @@ func TestMarshalRequestSignature(t *testing.T) {
 				Nonce:     "AF1404CC2980FB414C99C0B98883BD42",
 				Body:      []byte(`{"appid":"wx81be3101902f7cb2","mchid":"1601959334","description":"for testing","out_trade_no":"S20210124144305172434","time_expire":"2021-01-24T14:53:05+08:00","attach":"cipher code","notify_url":"https://luoji.live/notify","amount":{"total":1,"currency":"CNY"},"detail":{},"scene_info":{"payer_client_ip":"","store_info":{"id":""}}}`),
 			},
+			true,
 			"POST\n/v3/pay/transactions/native\n1611368330\nAF1404CC2980FB414C99C0B98883BD42\n" + `{"appid":"wx81be3101902f7cb2","mchid":"1601959334","description":"for testing","out_trade_no":"S20210124144305172434","time_expire":"2021-01-24T14:53:05+08:00","attach":"cipher code","notify_url":"https://luoji.live/notify","amount":{"total":1,"currency":"CNY"},"detail":{},"scene_info":{"payer_client_ip":"","store_info":{"id":""}}}` + "\n",
 		},
 		{
@@ -50,6 +55,7 @@ func TestMarshalRequestSignature(t *testing.T) {
 				Timestamp: ts,
 				Nonce:     "AF1404CC2980FB414C99C0B98883BD42",
 			},
+			true,
 			"GET\n/v3/pay/transactions/out-trade-no/1217752501201407033233368018?mchid=1230000109\n1611368330\nAF1404CC2980FB414C99C0B98883BD42\n\n",
 		},
 		{
@@ -60,6 +66,7 @@ func TestMarshalRequestSignature(t *testing.T) {
 				Nonce:     "AF1404CC2980FB414C99C0B98883BD42",
 				Body:      []byte{},
 			},
+			true,
 			"POST\n/v3/pay/transactions/out-trade-no/your_out_trade_no/close\n1611368330\nAF1404CC2980FB414C99C0B98883BD42\n\n",
 		},
 		{
@@ -69,6 +76,7 @@ func TestMarshalRequestSignature(t *testing.T) {
 				Timestamp: ts,
 				Nonce:     "AF1404CC2980FB414C99C0B98883BD42",
 			},
+			true,
 			"GET\n/v3/bill/tradebill?bill_date=2019-06-11&sub_mchid=1900000001&bill_type=ALL\n1611368330\nAF1404CC2980FB414C99C0B98883BD42\n\n",
 		},
 		{
@@ -78,14 +86,26 @@ func TestMarshalRequestSignature(t *testing.T) {
 				Timestamp: ts,
 				Nonce:     "AF1404CC2980FB414C99C0B98883BD42",
 			},
+			true,
 			"GET\n/v3/bill/fundflowbill?bill_date=2019-06-11&account_type=BASIC\n1611368330\nAF1404CC2980FB414C99C0B98883BD42\n\n",
+		},
+		{
+			&RequestSignature{
+				Method:    "GET",
+				Url:       "http\n//abc.com",
+				Timestamp: ts,
+				Nonce:     "AF1404CC2980FB414C99C0B98883BD42",
+			},
+			false,
+			"",
 		},
 	}
 
 	for _, c := range cases {
 		signature, err := c.req.Marshal()
-		if err != nil {
-			t.Fatal(err)
+		pass := err == nil
+		if c.pass != pass {
+			t.Fatalf("expect %v, got %v, %v", c.pass, pass, err)
 		}
 
 		signatureTxt := string(signature)
@@ -101,30 +121,80 @@ func TestGenerateSignature(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var ts int64 = 1611368330
-	reqSign := &RequestSignature{
-		Method:    "POST",
-		Url:       "https://api.mch.weixin.qq.com/v3/pay/transactions/native",
-		Timestamp: ts,
-		Nonce:     "AF1404CC2980FB414C99C0B98883BD42",
-		Body:      []byte(`{"appid":"wx81be3101902f7cb2","mchid":"1601959334","description":"for testing","out_trade_no":"S20210124144305172434","time_expire":"2021-01-24T14:53:05+08:00","attach":"cipher code","notify_url":"https://luoji.live/notify","amount":{"total":1,"currency":"CNY"},"detail":{},"scene_info":{"payer_client_ip":"","store_info":{"id":""}}}`),
+	invalidPrivateKey := &rsa.PrivateKey{
+		PublicKey: rsa.PublicKey{
+			N: fromBase10("935393046677"),
+			E: 65537,
+		},
+		D: fromBase10("72663984313281163"),
+		Primes: []*big.Int{
+			fromBase10("9892036654808464"),
+			fromBase10("9456020830884701"),
+		},
 	}
 
-	mchId := "xxxxx"
-	serialNo := "yyyyy"
-	expect := `mchid="xxxxx",nonce_str="AF1404CC2980FB414C99C0B98883BD42",signature="ItuRCG6nAf6ZUi5C5LPa0beCGrG7+G4NdaCHLTmym+UzuZHFgFeqRZ4zKQ0n93qehchFWfQ7s00pgABYvXcOMsV1ld7AUjDTZBPucJK6yhFKz9jd20wtRdDG4LRCZcaTowD2f7LtlixFm8F3/YQaBavxiOe54tc3RX/22flYRzy4YFOpBt+bmjSPZIdSFi53323u7cohwvdHwX+avQCtLZKAUNFJIob66u05BbDEITzYuHjakjpb5btvWemjoZBPxkiETzmd4Oa1y2U+rfFCPZyWT4EV7UxHeEizBL8DkubEBD3KXeArqRX6yoMAU4ywmdFeWDbv1EF0Ndy9hiddZQ==",timestamp="1611368330",serial_no="yyyyy"`
-
-	signatureString, err := GenerateSignature(
-		privateKey,
-		reqSign,
-		mchId,
-		serialNo)
-	if err != nil {
-		t.Fatal(err)
+	cases := []struct {
+		pk       *rsa.PrivateKey
+		req      *RequestSignature
+		mchId    string
+		serialNo string
+		pass     bool
+		expect   string
+	}{
+		{
+			privateKey,
+			&RequestSignature{
+				Method:    "POST",
+				Url:       "https://api.mch.weixin.qq.com/v3/pay/transactions/native",
+				Timestamp: 1611368330,
+				Nonce:     "AF1404CC2980FB414C99C0B98883BD42",
+				Body:      []byte(`{"appid":"wx81be3101902f7cb2","mchid":"1601959334","description":"for testing","out_trade_no":"S20210124144305172434","time_expire":"2021-01-24T14:53:05+08:00","attach":"cipher code","notify_url":"https://luoji.live/notify","amount":{"total":1,"currency":"CNY"},"detail":{},"scene_info":{"payer_client_ip":"","store_info":{"id":""}}}`),
+			},
+			"xxxxx",
+			"yyyyy",
+			true,
+			`mchid="xxxxx",nonce_str="AF1404CC2980FB414C99C0B98883BD42",signature="ItuRCG6nAf6ZUi5C5LPa0beCGrG7+G4NdaCHLTmym+UzuZHFgFeqRZ4zKQ0n93qehchFWfQ7s00pgABYvXcOMsV1ld7AUjDTZBPucJK6yhFKz9jd20wtRdDG4LRCZcaTowD2f7LtlixFm8F3/YQaBavxiOe54tc3RX/22flYRzy4YFOpBt+bmjSPZIdSFi53323u7cohwvdHwX+avQCtLZKAUNFJIob66u05BbDEITzYuHjakjpb5btvWemjoZBPxkiETzmd4Oa1y2U+rfFCPZyWT4EV7UxHeEizBL8DkubEBD3KXeArqRX6yoMAU4ywmdFeWDbv1EF0Ndy9hiddZQ==",timestamp="1611368330",serial_no="yyyyy"`,
+		},
+		{
+			privateKey,
+			&RequestSignature{
+				Method:    "POST",
+				Url:       "https:\n//abc.com",
+				Timestamp: 1611368330,
+				Nonce:     "AF1404CC2980FB414C99C0B98883BD42",
+				Body:      []byte(``),
+			},
+			"xxxxx",
+			"yyyyy",
+			false,
+			``,
+		},
+		{
+			invalidPrivateKey,
+			&RequestSignature{
+				Method:    "POST",
+				Url:       "https:\n//abc.com",
+				Timestamp: 1611368330,
+				Nonce:     "AF1404CC2980FB414C99C0B98883BD42",
+				Body:      []byte(``),
+			},
+			"xxxxx",
+			"yyyyy",
+			false,
+			``,
+		},
 	}
 
-	if signatureString != expect {
-		t.Fatalf("expect %s, got %s", expect, signatureString)
+	for _, c := range cases {
+		signatureTxt, err := GenerateSignature(c.pk, c.req, c.mchId, c.serialNo)
+		pass := err == nil
+		if c.pass != pass {
+			t.Fatalf("expect %v, got %v, %v", c.pass, pass, err)
+		}
+
+		if signatureTxt != c.expect {
+			t.Fatalf("expect %s, got %s", c.expect, signatureTxt)
+		}
 	}
 }
 
@@ -185,5 +255,12 @@ func TestVerifySignature(t *testing.T) {
 		if actual != c.expect {
 			t.Fatalf("expect %v, got %v, %v", c.expect, actual, err)
 		}
+	}
+}
+
+func TestNewRequestSignature(t *testing.T) {
+	req := NewRequestSignature("GET", "http://example.com", []byte("xxxx"))
+	if req == nil {
+		t.Fail()
 	}
 }

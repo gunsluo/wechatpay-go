@@ -18,6 +18,19 @@ import (
 	"testing"
 )
 
+func TestRandomHex(t *testing.T) {
+	hex := randomHex(10)
+	if len(hex) != 10 {
+		t.Fail()
+	}
+}
+
+func TestRandomBytesMod(t *testing.T) {
+	defer func() { recover() }()
+	randomBytesMod(10, 0)
+	t.Errorf("did not panic")
+}
+
 func BenchmarkRandomHex(b *testing.B) {
 	checkDuplicate := map[string]struct{}{}
 	for n := 0; n < b.N; n++ {

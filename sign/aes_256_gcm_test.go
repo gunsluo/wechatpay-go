@@ -15,8 +15,89 @@
 package sign
 
 import (
+	"fmt"
 	"testing"
 )
+
+func TestEncryptByAes256Gcm(t *testing.T) {
+	cases := []struct {
+		key    []byte
+		noce   []byte
+		data   []byte
+		text   string
+		expect bool
+	}{
+		{
+			[]byte("AES256Key-32Characters1234567890"),
+			[]byte("eabb3e044577"),
+			[]byte("certificate"),
+			"exampleplaintext",
+			true,
+		},
+		{
+			[]byte("AES256Key-"),
+			[]byte("eabb3e044577"),
+			[]byte("certificate"),
+			"exampleplaintext",
+			false,
+		},
+	}
+
+	for _, c := range cases {
+		_, err := EncryptByAes256Gcm(c.key, c.noce, c.data, c.text)
+		expect := err == nil
+		if c.expect != expect {
+			t.Fatalf("expect %v, got %v, %v", c.expect, expect, err)
+		}
+	}
+}
+
+func TestDecryptByAes256Gcm(t *testing.T) {
+	cases := []struct {
+		key    []byte
+		noce   []byte
+		data   []byte
+		secret string
+		expect bool
+	}{
+		{
+			[]byte("AES256Key-32Characters1234567890"),
+			[]byte("eabb3e044577"),
+			[]byte("certificate"),
+			"tJjSQMG758oX39qpn/RoZPZ3qh8LRIIwcnQeFhU/alQ=",
+			true,
+		},
+		{
+			[]byte("AES256Key-"),
+			[]byte("eabb3e044577"),
+			[]byte("certificate"),
+			"tJjSQMG758oX39qpn/RoZPZ3qh8LRIIwcnQeFhU/alQ=",
+			false,
+		},
+		{
+			[]byte("AES256Key-32Characters1234567890"),
+			[]byte("eabb3e044577"),
+			[]byte("certificate"),
+			"tJjSQMG75/RoZP/alQ=",
+			false,
+		},
+		{
+			[]byte("AES256Key-32Characters1234567890"),
+			[]byte("eabb3e044577"),
+			[]byte("certificate"),
+			"exampleplaintext",
+			false,
+		},
+	}
+
+	for _, c := range cases {
+		_, err := DecryptByAes256Gcm(c.key, c.noce, c.data, c.secret)
+		expect := err == nil
+		if c.expect != expect {
+			t.Fatalf("expect %v, got %v, %v", c.expect, expect, err)
+		}
+	}
+}
 
 func TestAes256Gcm(t *testing.T) {
 	cases := []struct {
@@ -38,6 +119,7 @@ func TestAes256Gcm(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		fmt.Println("-->", secret)
 
 		plain, err := DecryptByAes256Gcm(c.key, c.noce, c.data, secret)
 		if err != nil {
