@@ -1,4 +1,88 @@
-# wechatpay-go
-Wechat Pay SDK(V3) Write by Go. API V3 of Office document is [here](https://pay.weixin.qq.com/wiki/doc/apiv3/index.shtml)
+# WechatPay GO
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/gunsluo/wechatpay-go/blob/master/LICENSE)
+[![CI](https://github.com/gunsluo/wechatpay-go/workflows/ci/badge.svg)](https://github.com/gunsluo/wechatpay-go/actions?query=branch%3Amaster)
+[![codecov](https://codecov.io/gh/gunsluo/wechatpay-go/branch/master/graph/badge.svg?token=VFZKUPNGXN)](https://codecov.io/gh/gunsluo/wechatpay-go)
+
+
+## Introduction
+
+Wechat Pay SDK(V3) Write by Go. API V3 of Office document is [here](https://pay.weixin.qq.com/wiki/doc/apiv3/index.shtml).
+
+## Features
+* Signature/Verify messages
+* Encrypt/Decrypt cert
+* APIv3 Endpoints
+* None third-party dependency package
+
+When developing, you can use the `Makefile` for doing the following operations:
+
+| Endpoint           | Description                                                      |        supported       |
+| ------------------:| -----------------------------------------------------------------|:----------------------:|
+| `pay`              | Merchant send the payment transaction                            |   :heavy_check_mark:   |
+| `query`            | Merchant query payment transactions                              |   :heavy_check_mark:   |
+| `close`            | Merchant close the payment transaction                           |   :heavy_check_mark:   |
+| `notify`           | WeChat Pay notifies the merchant of the user's payment status    |   :heavy_check_mark:   |
+| `certificate`      | obtain the platform cert and decrypt it to public key            |   :heavy_check_mark:   |
+| `tradebill`        | obtain the download url of trade bill                            |   :heavy_check_mark:   |
+| `fundflowbill`     | obtain the download url of trade bill                            |   :heavy_check_mark:   |
+| `refund`           | Merchant send the refund transaction                             |:heavy_multiplication_x:|
+| `refundquery`      | Merchant query payment transactions                              |:heavy_multiplication_x:|
+| `refundnotify`     | WeChat Pay notifies the merchant of the refund status            |:heavy_multiplication_x:|
+
+Note: *Endpoints about refund still uses v2 version, will update once wechat-pay upgrade*
+
+
+## Getting Started
+
+You can find a getting started guide as shown below: 
+
+1. *import package*
+```
+import "github.com/gunsluo/wechatpay-go/v3"
+```
+
+2. *create a client*
+```Go
+	// create a client of wechat pay
+	client, err := wechatpay.NewClient(
+		wechatpay.Config{
+			AppId:       appId,
+			MchId:       mchId,
+			Apiv3Secret: apiv3Secret,
+			Cert: wechatpay.CertSuite{
+				SerialNo:       serialNo,
+				PrivateKeyPath: privateKeyPath,
+			},
+		})
+```
+
+3. *send a transaction*
+
+```Go
+	req := &wechatpay.PayRequest{
+		AppId:       appId,
+		MchId:       mchId,
+		Description: "for testing",
+		OutTradeNo:  tradeNo,
+		TimeExpire:  time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+		Attach:      "cipher code",
+		NotifyUrl:   "https://luoji.live/notify",
+		Amount: wechatpay.PayAmount{
+			Total:    int(amount * 100),
+			Currency: "CNY",
+		},
+		TradeType: wechatpay.Native,
+	}
+
+	resp, err := req.Do(r.Context(), client)
+	if err != nil {
+        // do something
+	}
+	codeUrl := resp.CodeUrl
+```
+
+## Example
+
+There is [a full example](https://github.com/gunsluo/wechatpay-example) for wechatpay-go.
 
