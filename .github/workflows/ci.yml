@@ -25,7 +25,7 @@ jobs:
       run: CVPKG=$(go list ./...) go test -coverpkg=${CVPKG} -race -coverprofile=coverage.out -covermode=atomic  ./...
 
     - name: Upload Coverage report to CodeCov
-        uses: codecov/codecov-action@v1.0.0
-        with:
-          token: ${{secrets.CODECOV_TOKEN}}
-          file: ./coverage.out
+      uses: codecov/codecov-action@v1.0.0
+      with:
+        token: ${{secrets.CODECOV_TOKEN}}
+        file: ./coverage.out
