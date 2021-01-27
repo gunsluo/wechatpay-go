@@ -26,6 +26,20 @@ func TestRandomHex(t *testing.T) {
 }
 
 func TestRandomBytesMod(t *testing.T) {
+	b := randomBytesMod(10, 'c')
+	if len(b) == 0 {
+		t.Fail()
+	}
+}
+
+func TestRandomBytesModZeroLen(t *testing.T) {
+	b := randomBytesMod(0, 0)
+	if len(b) != 0 {
+		t.Fail()
+	}
+}
+
+func TestRandomBytesModPanic(t *testing.T) {
 	defer func() { recover() }()
 	randomBytesMod(10, 0)
 	t.Errorf("did not panic")

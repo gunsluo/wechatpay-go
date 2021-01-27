@@ -15,7 +15,6 @@
 package sign
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -119,7 +118,6 @@ func TestAes256Gcm(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		fmt.Println("-->", secret)
 
 		plain, err := DecryptByAes256Gcm(c.key, c.noce, c.data, secret)
 		if err != nil {
