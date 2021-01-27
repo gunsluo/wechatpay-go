@@ -1,4 +1,4 @@
-# WechatPay GO
+# WechatPay GO(v3)
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/gunsluo/wechatpay-go/blob/master/LICENSE)
 [![CI](https://github.com/gunsluo/wechatpay-go/workflows/ci/badge.svg)](https://github.com/gunsluo/wechatpay-go/actions?query=branch%3Amaster)
@@ -42,47 +42,35 @@ You can find a getting started guide as shown below:
 import "github.com/gunsluo/wechatpay-go/v3"
 ```
 
-2. *create a client*
+2. *use this sdk*
 ```Go
-	// create a client of wechat pay
-	client, err := wechatpay.NewClient(
-		wechatpay.Config{
-			AppId:       appId,
-			MchId:       mchId,
-			Apiv3Secret: apiv3Secret,
-			Cert: wechatpay.CertSuite{
-				SerialNo:       serialNo,
-				PrivateKeyPath: privateKeyPath,
-			},
-		})
-```
+// create a client of wechat pay
+client, err := wechatpay.NewClient(
+    wechatpay.Config{
+       ...
+    })
 
-3. *send a transaction*
+// create a pay request
+req := &wechatpay.PayRequest{
+    AppId:       appId,
+    MchId:       mchId,
+    Description: "for testing",
+        ...
+    TradeType: wechatpay.Native,
+}
 
-```Go
-	req := &wechatpay.PayRequest{
-		AppId:       appId,
-		MchId:       mchId,
-		Description: "for testing",
-		OutTradeNo:  tradeNo,
-		TimeExpire:  time.Now().Add(10 * time.Minute).Format(time.RFC3339),
-		Attach:      "cipher code",
-		NotifyUrl:   "https://luoji.live/notify",
-		Amount: wechatpay.PayAmount{
-			Total:    int(amount * 100),
-			Currency: "CNY",
-		},
-		TradeType: wechatpay.Native,
-	}
-
-	resp, err := req.Do(r.Context(), client)
-	if err != nil {
-        // do something
-	}
-	codeUrl := resp.CodeUrl
+resp, err := req.Do(r.Context(), client)
+if err != nil {
+    // do something
+}
+codeUrl := resp.CodeUrl
 ```
 
 ## Example
 
 There is [a full example](https://github.com/gunsluo/wechatpay-example) for wechatpay-go.
+
+## Contributing
+
+See the [contributing documentation](CONTRIBUTING.md).
 
