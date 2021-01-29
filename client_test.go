@@ -181,13 +181,9 @@ func TestVerifySignatureForClient(t *testing.T) {
 		},
 	}
 
+	ctx := context.Background()
 	for _, c := range cases {
-		err := client.upgradeCertificate([]byte(c.result.Body))
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		err = client.VerifySignature(c.result)
+		err = client.VerifySignature(ctx, c.result)
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -40,7 +40,7 @@ type QueryResponse struct {
 	SuccessTime    string    `json:"success_time,omitempty"`
 	Payer          Payer     `json:"payer"`
 
-	Amount    *TransactionAmount    `json:"amount,omitempty"`
+	Amount    TransactionAmount     `json:"amount,omitempty"`
 	SceneInfo *TransactionSceneInfo `json:"scene_info,omitempty"`
 	Promotion *PromotionDetail      `json:"promotion_detail,omitempty"`
 }

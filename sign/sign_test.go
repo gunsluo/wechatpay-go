@@ -173,7 +173,7 @@ func TestGenerateSignature(t *testing.T) {
 			invalidPrivateKey,
 			&RequestSignature{
 				Method:    "POST",
-				Url:       "https:\n//abc.com",
+				Url:       "https://abc.com",
 				Timestamp: 1611368330,
 				Nonce:     "AF1404CC2980FB414C99C0B98883BD42",
 				Body:      []byte(``),

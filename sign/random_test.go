@@ -15,6 +15,8 @@
 package sign
 
 import (
+	"bytes"
+	"crypto/rand"
 	"testing"
 )
 
@@ -42,6 +44,18 @@ func TestRandomBytesModZeroLen(t *testing.T) {
 func TestRandomBytesModPanic(t *testing.T) {
 	defer func() { recover() }()
 	randomBytesMod(10, 0)
+	t.Errorf("did not panic")
+}
+
+func TestRandomBytesPanic(t *testing.T) {
+	clone := rand.Reader
+	defer func() {
+		recover()
+		rand.Reader = clone
+	}()
+
+	rand.Reader = bytes.NewReader([]byte("x"))
+	randomBytes(10)
 	t.Errorf("did not panic")
 }
 

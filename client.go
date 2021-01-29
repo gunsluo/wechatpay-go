@@ -32,6 +32,7 @@ import (
 type Client interface {
 	Config() *Config
 	Do(context.Context, string, string, ...interface{}) *Result
+	VerifySignature(context.Context, *Result) error
 }
 
 type client struct {
@@ -119,40 +120,32 @@ func (c *client) Signature(reqSign *sign.RequestSignature) (string, error) {
 
 // Do sends a request and returns a result.
 func (c *client) Do(ctx context.Context, method, url string, req ...interface{}) *Result {
-	isCertRequest := c.isCertificateRequest(method, url)
-	if !isCertRequest {
-		// check and load certificates
-		if err := c.lazyLoadCertificates(ctx); err != nil {
-			return &Result{Err: NewInternalError(err)}
-		}
-	}
-
 	// 1. serialie the request
 	var reqBuffer []byte
 	if len(req) > 0 {
 		buffer, err := json.Marshal(req[0])
 		if err != nil {
-			return &Result{Err: NewInternalError(err)}
+			return &Result{Err: err}
 		}
 		reqBuffer = buffer
 	}
 	reqSign := c.genRequestSignature(method, url, reqBuffer)
 
+	// 2-5. get data from wechatpay side
 	result := c.do(ctx, reqSign)
 	if result.Err != nil {
 		return result
 	}
 
-	// 6. verify the response
-	if isCertRequest {
-		// upgrade certs and then verify signature.
-		if err := c.upgradeCertificate(result.Body); err != nil {
-			return &Result{Err: NewInternalError(err)}
-		}
+	// 6. do extra workflow
+	if err := c.doExtraWorkflow(ctx, reqSign, result); err != nil {
+		result.Err = err
+		return result
 	}
 
-	if err := c.VerifySignature(result); err != nil {
-		result.Err = NewInternalError(err)
+	// 7. verify the response
+	if err := c.VerifySignature(ctx, result); err != nil {
+		result.Err = err
 	}
 
 	return result
@@ -167,13 +160,13 @@ func (c *client) do(ctx context.Context, reqSign *sign.RequestSignature) *Result
 	// 2. create a http request
 	httpReq, err := http.NewRequest(reqSign.Method, reqSign.Url, reader)
 	if err != nil {
-		return &Result{Err: NewInternalError(err)}
+		return &Result{Err: err}
 	}
 
 	// 3. signature the request
 	authSign, err := c.Signature(reqSign)
 	if err != nil {
-		return &Result{Err: NewInternalError(err)}
+		return &Result{Err: err}
 	}
 
 	httpReq.Header.Set("Authorization", authSign)
@@ -187,17 +180,22 @@ func (c *client) do(ctx context.Context, reqSign *sign.RequestSignature) *Result
 	}
 	httpResp, err := client.Do(httpReq)
 	if err != nil {
-		return &Result{Err: NewInternalError(err)}
+		return &Result{Err: err}
 	}
 	defer httpResp.Body.Close()
 
 	if httpResp.StatusCode != http.StatusOK {
 		message, err := ioutil.ReadAll(httpResp.Body)
 		if err != nil {
-			return &Result{Err: NewInternalError(err)}
+			return &Result{Err: err}
 		}
 
-		return &Result{Err: NewError(httpResp.StatusCode, message)}
+		e := &Error{Status: httpResp.StatusCode}
+		if err := json.Unmarshal(message, e); err != nil {
+			return &Result{Err: err}
+		}
+
+		return &Result{Err: e}
 	}
 
 	// 5. read the response
@@ -210,14 +208,14 @@ func (c *client) do(ctx context.Context, reqSign *sign.RequestSignature) *Result
 	if ts != "" {
 		i, err := strconv.ParseInt(ts, 10, 64)
 		if err != nil {
-			return &Result{Err: NewInternalError(err)}
+			return &Result{Err: err}
 		}
 		timestamp = i
 	}
 
 	body, err := ioutil.ReadAll(httpResp.Body)
 	if err != nil {
-		return &Result{Err: NewInternalError(err)}
+		return &Result{Err: err}
 	}
 
 	result := &Result{
@@ -231,38 +229,43 @@ func (c *client) do(ctx context.Context, reqSign *sign.RequestSignature) *Result
 	return result
 }
 
-func (c *client) isCertificateRequest(method, url string) bool {
-	if method == http.MethodGet && url == c.config.opts.CertUrl {
-		return true
-	}
-	return false
-}
-
-func (c *client) lazyLoadCertificates(ctx context.Context) error {
-	// TODO: maybe set a expried time for this
-	if len(c.publicKeys) > 0 {
-		return nil
-	}
-
-	rs := c.Do(ctx, http.MethodGet, c.config.opts.CertUrl)
-	if rs.Err != nil {
-		return rs.Err
-	}
-
-	if len(c.publicKeys) == 0 {
-		return errors.New("no certificates are available")
+func (c *client) doExtraWorkflow(ctx context.Context, reqSign *sign.RequestSignature, result *Result) error {
+	workflows := c.getExtraWorkflows(reqSign)
+	for _, workflow := range workflows {
+		if err := workflow(ctx, c, reqSign, result); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func (c *client) upgradeCertificate(data []byte) error {
+func (c *client) getExtraWorkflows(reqSign *sign.RequestSignature) []extraWorkflow {
+	var workflows []extraWorkflow
+
+	// cert
+	if reqSign.Method == http.MethodGet && reqSign.Url == c.config.opts.CertUrl {
+		if workflow, ok := extraWorkflowsMapping["cert"]; ok {
+			workflows = append(workflows, workflow)
+		}
+	}
+
+	return workflows
+}
+
+type extraWorkflow func(context.Context, *client, *sign.RequestSignature, *Result) error
+
+var extraWorkflowsMapping = map[string]extraWorkflow{
+	"cert": upgradeCertWorkflow,
+}
+
+func upgradeCertWorkflow(ctx context.Context, c *client, reqSign *sign.RequestSignature, result *Result) error {
 	resp := &CertificatesResponse{}
-	if err := json.Unmarshal(data, resp); err != nil {
+	if err := json.Unmarshal(result.Body, resp); err != nil {
 		return err
 	}
 
-	apiv3Secret := []byte(c.config.Apiv3Secret)
+	apiv3Secret := []byte(c.Config().Apiv3Secret)
 	for _, cert := range resp.Certificates {
 		// using apiv3 secret decrypt cert
 		certBuffer, err := sign.DecryptByAes256Gcm(
@@ -285,7 +288,12 @@ func (c *client) upgradeCertificate(data []byte) error {
 }
 
 // VerifySignature verify the signature from wechat pay's responses
-func (c *client) VerifySignature(result *Result) error {
+func (c *client) VerifySignature(ctx context.Context, result *Result) error {
+	// check and download certificates
+	if err := c.onceDownloadCertificates(ctx); err != nil {
+		return err
+	}
+
 	publicKey, ok := c.publicKeys[result.SerialNo]
 	if !ok {
 		return errors.New("not found cert")
@@ -298,4 +306,22 @@ func (c *client) VerifySignature(result *Result) error {
 	}
 
 	return sign.VerifySignature(publicKey, respSign, result.Signature)
+}
+
+func (c *client) onceDownloadCertificates(ctx context.Context) error {
+	// TODO: maybe set a expried time for this
+	if len(c.publicKeys) > 0 {
+		return nil
+	}
+
+	rs := c.Do(ctx, http.MethodGet, c.config.opts.CertUrl)
+	if rs.Err != nil {
+		return rs.Err
+	}
+
+	if len(c.publicKeys) == 0 {
+		return errors.New("no certificates are available")
+	}
+
+	return nil
 }

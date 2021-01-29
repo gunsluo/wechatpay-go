@@ -39,6 +39,11 @@ func TestLoadRSAPrivateKeyFromTxt(t *testing.T) {
 			false,
 			"",
 		},
+		{
+			mockRSAPublicKeyCert,
+			false,
+			"",
+		},
 	}
 
 	for _, c := range cases {
