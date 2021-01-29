@@ -26,8 +26,8 @@ type QueryRequest struct {
 	TransactionId string `json:"-"`
 }
 
-// QueryRespone is the response for query transaction
-type QueryRespone struct {
+// QueryResponse is the response for query transaction
+type QueryResponse struct {
 	AppId          string    `json:"appid"`
 	MchId          string    `json:"mchid"`
 	OutTradeNo     string    `json:"out_trade_no"`
@@ -65,7 +65,7 @@ type TransactionSceneInfo struct {
 
 // PromotionDetail is the promotion information about the transaction
 type PromotionDetail struct {
-	Coupon_id           string `json:"coupon_id"`
+	CouponId            string `json:"coupon_id"`
 	Name                string `json:"name,omitempty"`
 	Scope               string `json:"scope,omitempty"`
 	Type                string `json:"type,omitempty"`
@@ -92,7 +92,7 @@ type TransactionGoodDetail struct {
 func (r *QueryRequest) Do(ctx context.Context, c Client) error {
 	url := r.url(c.Config().Options().Domain)
 
-	resp := &QueryRespone{}
+	resp := &QueryResponse{}
 	if err := c.Do(ctx, http.MethodGet, url).Scan(resp); err != nil {
 		return err
 	}

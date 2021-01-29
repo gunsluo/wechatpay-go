@@ -257,7 +257,7 @@ func (c *client) lazyLoadCertificates(ctx context.Context) error {
 }
 
 func (c *client) upgradeCertificate(data []byte) error {
-	resp := &CertificatesRespone{}
+	resp := &CertificatesResponse{}
 	if err := json.Unmarshal(data, resp); err != nil {
 		return err
 	}

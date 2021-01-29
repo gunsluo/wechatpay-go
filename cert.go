@@ -23,8 +23,8 @@ import (
 type CertificatesRequest struct {
 }
 
-// CertificatesRespone is the response about certificates
-type CertificatesRespone struct {
+// CertificatesResponse is the response about certificates
+type CertificatesResponse struct {
 	Certificates []Certificate `json:"data"`
 }
 
@@ -45,10 +45,10 @@ type EncryptCertificate struct {
 }
 
 // Do get certificates from wechat pay
-func (r *CertificatesRequest) Do(ctx context.Context, c Client) (*CertificatesRespone, error) {
+func (r *CertificatesRequest) Do(ctx context.Context, c Client) (*CertificatesResponse, error) {
 	url := c.Config().Options().CertUrl
 
-	resp := &CertificatesRespone{}
+	resp := &CertificatesResponse{}
 	if err := c.Do(ctx, http.MethodGet, url).Scan(resp); err != nil {
 		return nil, err
 	}

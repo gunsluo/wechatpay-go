@@ -20,7 +20,7 @@ import (
 	"strings"
 )
 
-// PayAmount is tatal amount paid, have total and currency.
+// PayAmount is total amount paid, have total and currency.
 type PayAmount struct {
 	Total    int    `json:"total"`
 	Currency string `json:"currency,omitempty"`
@@ -51,10 +51,10 @@ type PaySceneInfo struct {
 
 // StoreInfo  the store information about the transaction
 type StoreInfo struct {
-	Id        string `json:"id"`
-	Name      string `json:"name,omitempty"`
-	Area_code string `json:"area_code,omitempty"`
-	Address   string `json:"address,omitempty"`
+	Id       string `json:"id"`
+	Name     string `json:"name,omitempty"`
+	AreaCode string `json:"area_code,omitempty"`
+	Address  string `json:"address,omitempty"`
 }
 
 // PayRequest is request when send a payment
@@ -82,16 +82,16 @@ const (
 	Native TradeType = "NATIVE"
 )
 
-// PayRespone is response when send a payment
-type PayRespone struct {
+// PayResponse is response when send a payment
+type PayResponse struct {
 	CodeUrl string `json:"code_url"`
 }
 
 // Pay send a transaction and invoke wechat payment
-func (r *PayRequest) Do(ctx context.Context, c Client) (*PayRespone, error) {
+func (r *PayRequest) Do(ctx context.Context, c Client) (*PayResponse, error) {
 	url := r.url(c.Config().Options().Domain)
 
-	resp := &PayRespone{}
+	resp := &PayResponse{}
 	if err := c.Do(ctx, http.MethodPost, url, r).Scan(resp); err != nil {
 		return nil, err
 	}

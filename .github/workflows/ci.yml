@@ -19,10 +19,10 @@ jobs:
         go-version: 1.15
 
     - name: Build
-      run: go build -v ./...
+      run: make build
 
     - name: Test
-      run: CVPKG=$(go list ./...) go test -coverpkg=${CVPKG} -race -coverprofile=coverage.out -covermode=atomic  ./...
+      run: make run-test
 
     - name: Upload Coverage report to CodeCov
       run: bash <(curl -s https://codecov.io/bash)
