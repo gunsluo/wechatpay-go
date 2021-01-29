@@ -95,10 +95,7 @@ func newClient(cfg Config, opts ...Option) (*client, error) {
 		c.privateKey = privateKey
 	}
 
-	c.genRequestSignature = func(method, url string, body []byte) *sign.RequestSignature {
-		return sign.NewRequestSignature(method, url, body)
-	}
-
+	c.genRequestSignature = genRequestSignature
 	return c, nil
 }
 
@@ -296,7 +293,7 @@ func (c *client) VerifySignature(ctx context.Context, result *Result) error {
 
 	publicKey, ok := c.publicKeys[result.SerialNo]
 	if !ok {
-		return errors.New("not found cert")
+		return errors.New("certificate not found")
 	}
 
 	respSign := &sign.ResponseSignature{
@@ -308,7 +305,17 @@ func (c *client) VerifySignature(ctx context.Context, result *Result) error {
 	return sign.VerifySignature(publicKey, respSign, result.Signature)
 }
 
+type ctxOnceDlCert struct{}
+
+var ctxKeyOnceDlCert = ctxOnceDlCert{}
+
 func (c *client) onceDownloadCertificates(ctx context.Context) error {
+	// avoid infinite loops
+	if v := ctx.Value(ctxKeyOnceDlCert); v != nil {
+		return nil
+	}
+	ctx = context.WithValue(ctx, ctxKeyOnceDlCert, struct{}{})
+
 	// TODO: maybe set a expried time for this
 	if len(c.publicKeys) > 0 {
 		return nil
@@ -319,9 +326,13 @@ func (c *client) onceDownloadCertificates(ctx context.Context) error {
 		return rs.Err
 	}
 
-	if len(c.publicKeys) == 0 {
-		return errors.New("no certificates are available")
-	}
+	//if len(c.publicKeys) == 0 {
+	//	return errors.New("no certificates are available")
+	//}
 
 	return nil
+}
+
+func genRequestSignature(method, url string, body []byte) *sign.RequestSignature {
+	return sign.NewRequestSignature(method, url, body)
 }

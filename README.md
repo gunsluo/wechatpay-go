@@ -35,7 +35,7 @@ Note: *Endpoints about refund still uses v2 version, will update once wechat-pay
 
 ## Getting Started
 
-You can find a getting started guide as shown below: 
+Prepare your wechatp pay information, it includes App Id/Mech Id/Apiv3 Secret/Serial Number/Private Key Cert. You can find a getting started guide as shown below: 
 
 1. *import package*
 ```
@@ -65,8 +65,6 @@ if err != nil {
 }
 codeUrl := resp.CodeUrl
 ```
-
-## Example
 
 There is [a full example](https://github.com/gunsluo/wechatpay-example) for wechatpay-go.
 
