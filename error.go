@@ -11,7 +11,7 @@ type Error struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 
-	err error `json:"-"`
+	err error
 }
 
 // NewError return a new error

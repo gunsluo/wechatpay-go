@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-// Config is config for mechat pay, all fileds is required.
+// Config is config for wechat pay, all fields is required.
 type Config struct {
 	AppId string
 	MchId string
@@ -36,7 +36,7 @@ type CertSuite struct {
 	PrivateKeyPath string
 }
 
-// Option is optional configuration for mechat pay.
+// Option is optional configuration for wechat pay.
 type Option func(o *options)
 
 // Transport set transport to http client

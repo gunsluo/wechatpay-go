@@ -27,7 +27,7 @@ func DecryptByAes256Gcm(key, nonce, additionalData []byte, cipherText string) ([
 		return nil, err
 	}
 
-	aesgcm, err := cipher.NewGCM(block)
+	aesGcm, err := cipher.NewGCM(block)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func DecryptByAes256Gcm(key, nonce, additionalData []byte, cipherText string) ([
 		return nil, err
 	}
 
-	plainText, err := aesgcm.Open(nil, nonce, cipherBuffer, additionalData)
+	plainText, err := aesGcm.Open(nil, nonce, cipherBuffer, additionalData)
 	if err != nil {
 		return nil, err
 	}
@@ -53,11 +53,11 @@ func EncryptByAes256Gcm(key, nonce, additionalData []byte, plainText string) (st
 		return "", err
 	}
 
-	aesgcm, err := cipher.NewGCM(block)
+	aesGcm, err := cipher.NewGCM(block)
 	if err != nil {
 		return "", err
 	}
 
-	cipherText := aesgcm.Seal(nil, nonce, []byte(plainText), additionalData)
+	cipherText := aesGcm.Seal(nil, nonce, []byte(plainText), additionalData)
 	return base64.StdEncoding.EncodeToString(cipherText), nil
 }

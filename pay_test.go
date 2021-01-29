@@ -33,7 +33,7 @@ func TestDoForPay(t *testing.T) {
 
 	cases := []struct {
 		req  *PayRequest
-		resp *PayRespone
+		resp *PayResponse
 	}{
 		{
 			&PayRequest{
@@ -50,7 +50,7 @@ func TestDoForPay(t *testing.T) {
 				},
 				TradeType: Native,
 			},
-			&PayRespone{
+			&PayResponse{
 				CodeUrl: "weixin://wxpay/bizpayurl/up?pr=NwY5Mz9&groupid=00",
 			},
 		},

@@ -20,25 +20,25 @@ import (
 	"net/url"
 )
 
-// FundflowBilllRequest is the request for trade bill
-type FundflowBilllRequest struct {
+// FundFlowBillRequest is the request for trade bill
+type FundFlowBillRequest struct {
 	BillDate    string `json:"-"`
 	AccountType string `json:"-"`
 	TarType     string `json:"-"`
 }
 
-// FundflowBilllRespone is the response for trade bill
-type FundflowBilllRespone struct {
+// FundFlowBillRespone is the response for trade bill
+type FundFlowBillRespone struct {
 	HashType    string `json:"hash_type"`
 	HashValue   string `json:"hash_value"`
 	DownloadUrl string `json:"download_url"`
 }
 
 // Do send the request of close transaction
-func (r *FundflowBilllRequest) Do(ctx context.Context, c Client) error {
+func (r *FundFlowBillRequest) Do(ctx context.Context, c Client) error {
 	url := r.url(c.Config().Options().Domain)
 
-	resp := &FundflowBilllRespone{}
+	resp := &FundFlowBillRespone{}
 	if err := c.Do(ctx, http.MethodGet, url).Scan(resp); err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (r *FundflowBilllRequest) Do(ctx context.Context, c Client) error {
 	return nil
 }
 
-func (r *FundflowBilllRequest) url(domain string) string {
+func (r *FundFlowBillRequest) url(domain string) string {
 	v := url.Values{}
 	v.Add("bill_date", r.BillDate)
 	if r.AccountType != "" {

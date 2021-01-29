@@ -32,11 +32,11 @@ func TestDoForCert(t *testing.T) {
 
 	cases := []struct {
 		req  *CertificatesRequest
-		resp *CertificatesRespone
+		resp *CertificatesResponse
 	}{
 		{
 			&CertificatesRequest{},
-			&CertificatesRespone{
+			&CertificatesResponse{
 				Certificates: []Certificate{
 					{
 						SerialNo:      mockSerialNo,
