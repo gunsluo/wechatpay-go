@@ -16,7 +16,11 @@ package wechatpay
 
 import (
 	"context"
+	"crypto/rsa"
+	"io/ioutil"
+	"net/http"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -27,12 +31,14 @@ func TestDoForCert(t *testing.T) {
 	}
 
 	if client == nil {
-		t.Fail()
+		t.Fatal("client is nil")
 	}
 
 	cases := []struct {
-		req  *CertificatesRequest
-		resp *CertificatesResponse
+		req       *CertificatesRequest
+		resp      *CertificatesResponse
+		transport *mockTransport
+		pass      bool
 	}{
 		{
 			&CertificatesRequest{},
@@ -51,14 +57,42 @@ func TestDoForCert(t *testing.T) {
 					},
 				},
 			},
+			nil,
+			true,
+		},
+		{
+			&CertificatesRequest{},
+			&CertificatesResponse{},
+			&mockTransport{
+				RoundTripFn: func(req *http.Request) (*http.Response, error) {
+					var resp = &http.Response{
+						StatusCode: http.StatusOK,
+					}
+
+					resp.Header = http.Header{}
+					resp.Body = ioutil.NopCloser(strings.NewReader("{}"))
+					return resp, nil
+				},
+			},
+			false,
 		},
 	}
 
 	ctx := context.Background()
 	for _, c := range cases {
+		if c.transport != nil {
+			client.config.opts.transport = c.transport
+			client.publicKeys = make(map[string]*rsa.PublicKey)
+		}
+
 		resp, err := c.req.Do(ctx, client)
+		pass := err == nil
+		if pass != c.pass {
+			t.Fatalf("expect %v, got %v, err: %v", c.pass, pass, err)
+		}
+
 		if err != nil {
-			t.Fatal(err)
+			continue
 		}
 
 		if !reflect.DeepEqual(c.resp, resp) {

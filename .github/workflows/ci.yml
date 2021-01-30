@@ -1,28 +1,28 @@
-name: ci 
+name: ci
 
 on:
   push:
-    branches: [ master ]
+    branches:
+    - master
+    tags:
+    - "*"
   pull_request:
-    branches: [ master ]
-
+    branches:
+    - master
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Set up Go
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: goenv
       uses: actions/setup-go@v2
       with:
         go-version: 1.15
-
-    - name: Build
+    - name: build
       run: make build
-
-    - name: Test
+    - name: test
       run: make run-test
-
-    - name: Upload Coverage report to CodeCov
+    - name: uploadcoverage
       run: bash <(curl -s https://codecov.io/bash)
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}

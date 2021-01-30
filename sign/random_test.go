@@ -15,33 +15,47 @@
 package sign
 
 import (
+	"bytes"
+	"crypto/rand"
 	"testing"
 )
 
 func TestRandomHex(t *testing.T) {
 	hex := randomHex(10)
 	if len(hex) != 10 {
-		t.Fail()
+		t.Fatal("invalid length")
 	}
 }
 
 func TestRandomBytesMod(t *testing.T) {
 	b := randomBytesMod(10, 'c')
 	if len(b) == 0 {
-		t.Fail()
+		t.Fatal("invalid length")
 	}
 }
 
 func TestRandomBytesModZeroLen(t *testing.T) {
 	b := randomBytesMod(0, 0)
 	if len(b) != 0 {
-		t.Fail()
+		t.Fatal("invalid length")
 	}
 }
 
 func TestRandomBytesModPanic(t *testing.T) {
 	defer func() { recover() }()
 	randomBytesMod(10, 0)
+	t.Errorf("did not panic")
+}
+
+func TestRandomBytesPanic(t *testing.T) {
+	clone := rand.Reader
+	defer func() {
+		recover()
+		rand.Reader = clone
+	}()
+
+	rand.Reader = bytes.NewReader([]byte("x"))
+	randomBytes(10)
 	t.Errorf("did not panic")
 }
 
