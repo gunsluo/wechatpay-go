@@ -45,7 +45,7 @@ type PayNotifyResource struct {
 }
 
 // PayNotifyTransaction is the transaction after being decrypted
-type PayNotifyTransaction = QueryRespone
+type PayNotifyTransaction = QueryResponse
 
 // PayNotificationAnswer is sent to wechat pay after
 // processing the notification.

@@ -162,3 +162,13 @@ func TestParseForPayNotification(t *testing.T) {
 		}
 	}
 }
+
+func TestPayNotificationAnswer(t *testing.T) {
+	answer := &PayNotificationAnswer{}
+	buffer := answer.Bytes()
+	actual := string(buffer)
+	expect := `{"code":"","message":""}`
+	if expect != actual {
+		t.Fatalf("expect %s, got %s", expect, actual)
+	}
+}
