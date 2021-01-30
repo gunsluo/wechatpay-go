@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gunsluo/wechatpay-go/v3/sign"
 )
@@ -57,7 +58,7 @@ func mockNewClient() (*client, error) {
 				SerialNo:       serialNo,
 				PrivateKeyPath: privateKeyPath,
 			},
-		}, Transport(mocktransport))
+		}, Transport(mocktransport), Timeout(time.Minute))
 	if err != nil {
 		return nil, err
 	}
@@ -317,6 +318,12 @@ func TestDoForClient(t *testing.T) {
 		{
 			&CertificatesRequest{},
 			http.MethodGet,
+			"https://api.mch.weixin.qq.com/v3/invalidheader",
+			false,
+		},
+		{
+			&CertificatesRequest{},
+			http.MethodGet,
 			"https://api.mch.weixin.qq.com/v3/nodataresp",
 			false,
 		},
@@ -364,6 +371,31 @@ func TestFailedDoForClient(t *testing.T) {
 				return client, nil
 			},
 		},
+		{
+			&CertificatesRequest{},
+			http.MethodGet,
+			"https://api.mch.weixin.qq.com/v3/certificates",
+			func() (*client, error) {
+				client, err := mockNewClient()
+				if err != nil {
+					return nil, err
+				}
+
+				client.config.opts.transport = &mockTransport{
+					RoundTripFn: func(req *http.Request) (*http.Response, error) {
+						var resp = &http.Response{
+							StatusCode: http.StatusOK,
+						}
+
+						resp.Header = http.Header{}
+						resp.Body = ioutil.NopCloser(strings.NewReader("{}"))
+						return resp, nil
+					},
+				}
+
+				return client, nil
+			},
+		},
 	}
 
 	ctx := context.Background()
@@ -376,6 +408,68 @@ func TestFailedDoForClient(t *testing.T) {
 		result := client.Do(ctx, c.method, c.url, c.req)
 		if result.Err == nil {
 			t.Fatal("should be an error")
+		}
+	}
+}
+
+func TestDoExtraWorkflow(t *testing.T) {
+	client, err := mockNewClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if client == nil {
+		t.Fatal("client is nil")
+	}
+
+	cases := []struct {
+		req    *sign.RequestSignature
+		result *Result
+		pass   bool
+	}{
+		{
+			&sign.RequestSignature{
+				Method:    http.MethodGet,
+				Url:       "https://api.mch.weixin.qq.com/v3/certificates",
+				Timestamp: mockTimestamp,
+				Nonce:     mockNonce,
+				Body:      []byte(""),
+			},
+			&Result{
+				Timestamp: mockTimestamp,
+				Nonce:     mockNonce,
+				Signature: "",
+				SerialNo:  mockSerialNo,
+				Body: []byte(`{"data":[{"effective_time":"2020-09-17T14:26:23+08:00","encrypt_certificate":{"algorithm":"AEAD_AES_256_GCM","associated_data":"certificate","ciphertext":"/M2eAJyVx/0y8JOErsNEWbYpikwKMS0hDahBYrR9Tnqvaxw/WLMHyLq7G3GUoWx3NSwYZlSZ+1JxAMTd4yge1B8bxY7OLrDkXm+BBDVypy5jCi/gcTQduTJpR4nRcBRYtEIxLGLrVaUXlDjDa4nM0mUPk6XA7AAUUAl3z5lYISapsFYUuHO9splBrmUESHxzRhSfsTyW68ll8o+ND7xA5R94slxzZIVdVg2Tz/3uXi5X1Qu5oi9Dn7pFdHD7++msMB7rgSJUTIFMwZ2GhAX3f/vVWemSMCymPPxzYxdiGFJJ8oBaIn+17pwulmz6NodFS0ilJr9wBs/05gqxe5L6S64ApwXNTfq3YJFVIU6munBaHomRZqsMg3MQlji9yNLBdKO2hk2rq/jCaBLsqcrCHEMEEULA5/1ImeYEkKcX2vIiVtKX8WxxP4M/Gq7btAQZVGzvczopb3wZNu1QLnzC13ov0pB5BPMhrx0tE4rLuZ5d+uzGOwuI8CvqOa+8TQ0DNGNaEA/IPrMJCVvmLrDi/aMQB+P4mO9BhUlfGHwQL7Q0anHzZaGHGkYyEGoTPmqQcY1mRbVcXDpIGn7rfHgiXnQTurB886T//ddhcv1/LQmcohSveZJAltcaDlmeqMgc+bXsOlAy6JNIIVPJ04ysI+V7nc0O4k4A32ZYA1hK52CU1YWz3vMoaaHVr/t6AF3dVWE1CphhNIwGbaz9M1sgEsWwT8LKLG5csgVwG20LO8wmLkxNUQ4fSkMdC+2Qv+rSFd8rlT1j+sYEbPVq6E6URkYPUKMqI1mEEudU1Rx0bE/pjj7+++0gX1H7sHp4+02KLdWS27gptHVXdDjNFPyCEshfVL2B8aEhq8PxSDG5zTqWHrKBAl04WU3kjlSsKZPrpKyhpIrKbEZHcrip3wOGeMf+4XDoZ8Iq8KoM8R6m8wkWi0GAW4G743O44PxHFvljKDIkIQm8gWV37jC3+qb/ZwUDxHONw3tHMH8XWsCVq1KAtKeE/iE9CCmE+ht7K4B+w0DeqKEicm0dkdjuFc9IgFa1W+q0HqGFI2Snd6ZX6crUy1I1vkRTQRj1mqjaP7dFOFV0JMpK/4CKMruZfUilNfOnSoKqHA2jPQ3f4ro0H22bF/PNhOWXp6Tzl5ZVbIFBIMdD9+ocq1lDH7vcBfKVwUltKl7jgI9HlpCDPZp++Mt3C4lPDzP/XrqorJnFBKw8eMBHS7N+jDhzhqJnI3ldwlGxUsqS/hj+jUUPpYINe/UtVwlOBi/tfuEfv47H5YgbP+Y3dz78a6KJUcA7caPSSqX+8LBcwEEZELXR8gU/AxwoDAsHM1pb7wc9fslct+awivfRi47AJtFeeZMGF6bb14VnbzvIZdpZRBIzHlvUqP+t8ZKEUvEJ+lVk7vv0/ySWBZbt0oA5XQ2RVwgzKGOgfMzZafsWAqrq1PGYjJqBbm/hudPtqsBridW/QjoE2Bp+Qnp8mWhdlSP8dgdeefLEeZGUSJx0Tzu2hBveEz7jMNQSOyg8HEE=","nonce":"eabb3e044577"},"expire_time":"2025-09-16T14:26:23+08:00","serial_no":"477ED0046A54F0360A72A63A8F2816312AAEAB53"}]}
+`),
+			},
+			true,
+		},
+		{
+			&sign.RequestSignature{
+				Method:    http.MethodGet,
+				Url:       "https://api.mch.weixin.qq.com/v3/certificates",
+				Timestamp: mockTimestamp,
+				Nonce:     mockNonce,
+				Body:      []byte(""),
+			},
+			&Result{
+				Timestamp: mockTimestamp,
+				Nonce:     mockNonce,
+				Signature: "",
+				SerialNo:  mockSerialNo,
+				Body:      []byte(`{`),
+			},
+			false,
+		},
+	}
+
+	ctx := context.Background()
+	for _, c := range cases {
+		err := client.doExtraWorkflow(ctx, c.req, c.result)
+		pass := err == nil
+		if pass != c.pass {
+			t.Fatalf("expect %v, got %v, err: %v", c.pass, pass, err)
 		}
 	}
 }
@@ -489,7 +583,9 @@ func TestVerifySignatureForClient(t *testing.T) {
 	}
 
 	cases := []struct {
-		result *Result
+		result        *Result
+		mocktransport *mockTransport
+		pass          bool
 	}{
 		{
 			&Result{
@@ -500,14 +596,35 @@ func TestVerifySignatureForClient(t *testing.T) {
 				SerialNo:  mockSerialNo,
 				Signature: "KDrEP098zDlbX6ioHrS7sKLUNIqxzQcf+JXCkG5W44EKno1/qmI4WBf/sh63fwC++ZKBn/4gfEj7Iv4W3YH5kfgki6fFvfrRrGAxROiLSn/FZhbVu9E8pR4McxOR04UP+opyFhDL3lpPKqFB5AnUsTHhoCcZADzuHmCVHwU20DMGa00/Wr3kEcNYByy5hqz5sn7VbjoMs1KAMzmEKxXiIZIu5nvf4b4gk7zNvNWjMAUzsFHELHLfNqNMetzW/TIc0RL4S9vQL+GR7qRnzgKGkd5bfOn611jPEv1ut7UbWV+qvIYKeyaMe9xfyH83fobzSD9sbfZFwmb0wYMqPIgMtw==",
 			},
+			nil,
+			true,
+		},
+		{
+			&Result{},
+			&mockTransport{
+				RoundTripFn: func(req *http.Request) (*http.Response, error) {
+					var resp = &http.Response{
+						StatusCode: http.StatusInternalServerError,
+					}
+
+					resp.Body = ioutil.NopCloser(strings.NewReader(`{"code":"ERROR_NAME","message":"ERROR_DESCRIPTION"}`))
+					return resp, nil
+				},
+			},
+			false,
 		},
 	}
 
 	ctx := context.Background()
 	for _, c := range cases {
+		if c.mocktransport != nil {
+			client.config.opts.transport = c.mocktransport
+			client.publicKeys = make(map[string]*rsa.PublicKey)
+		}
 		err = client.VerifySignature(ctx, c.result)
-		if err != nil {
-			t.Fatal(err)
+		pass := err == nil
+		if pass != c.pass {
+			t.Fatalf("expect %v, got %v, err %v", c.pass, pass, err)
 		}
 	}
 }
@@ -600,6 +717,27 @@ func TestOnceDownloadCertificates(t *testing.T) {
 		pass := err == nil
 		if pass != c.pass {
 			t.Fatalf("expect %v, got %v, err %v", c.pass, pass, err)
+		}
+	}
+}
+
+func TestGenRequestSignature(t *testing.T) {
+	cases := []struct {
+		method string
+		url    string
+		body   []byte
+	}{
+		{
+			"POST",
+			"https://api.mch.weixin.qq.com/v3/pay/transactions/native",
+			[]byte(`{"appid":"wx81be3101902f7cb2","mchid":"1601959334","description":"for testing","out_trade_no":"S20210124144305172434","time_expire":"2021-01-24T14:53:05+08:00","attach":"cipher code","notify_url":"https://luoji.live/notify","amount":{"total":1,"currency":"CNY"},"detail":{},"scene_info":{"payer_client_ip":"","store_info":{"id":""}}}`),
+		},
+	}
+
+	for _, c := range cases {
+		req := genRequestSignature(c.method, c.url, c.body)
+		if req == nil {
+			t.Fatal("req is nil")
 		}
 	}
 }

@@ -23,21 +23,21 @@ import (
 func TestRandomHex(t *testing.T) {
 	hex := randomHex(10)
 	if len(hex) != 10 {
-		t.Fail()
+		t.Fatal("invalid length")
 	}
 }
 
 func TestRandomBytesMod(t *testing.T) {
 	b := randomBytesMod(10, 'c')
 	if len(b) == 0 {
-		t.Fail()
+		t.Fatal("invalid length")
 	}
 }
 
 func TestRandomBytesModZeroLen(t *testing.T) {
 	b := randomBytesMod(0, 0)
 	if len(b) != 0 {
-		t.Fail()
+		t.Fatal("invalid length")
 	}
 }
 

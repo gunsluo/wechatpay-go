@@ -261,6 +261,6 @@ func TestVerifySignature(t *testing.T) {
 func TestNewRequestSignature(t *testing.T) {
 	req := NewRequestSignature("GET", "http://example.com", []byte("xxxx"))
 	if req == nil {
-		t.Fail()
+		t.Fatal("request is nil")
 	}
 }

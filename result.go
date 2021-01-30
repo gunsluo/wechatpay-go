@@ -28,7 +28,7 @@ type Result struct {
 
 // Scan data from the response into the dest object.
 func (r *Result) Scan(dest interface{}) error {
-	if r.Err != nil {
+	if r.Error() != nil {
 		return r.Err
 	}
 

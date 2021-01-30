@@ -19,7 +19,6 @@ import (
 )
 
 func TestResult(t *testing.T) {
-	var nilErr *Error
 	cases := []struct {
 		result *Result
 		expect *PayResponse
@@ -35,13 +34,6 @@ func TestResult(t *testing.T) {
 		{
 			&Result{
 				Err: &Error{},
-			},
-			&PayResponse{"https://xxx.com"},
-			false,
-		},
-		{
-			&Result{
-				Err: nilErr,
 			},
 			&PayResponse{"https://xxx.com"},
 			false,
@@ -75,5 +67,27 @@ func TestResult(t *testing.T) {
 			t.Fatalf("expect %v, got %v, err %v", c.pass, pass, err)
 		}
 	}
-	nilErr.Error()
+}
+
+func TestError(t *testing.T) {
+	cases := []struct {
+		err    *Error
+		expect string
+	}{
+		{
+			&Error{400, "code", "message"},
+			`{"status":400,"code":"code","message":"message"}`,
+		},
+		{
+			nil,
+			"{}",
+		},
+	}
+
+	for _, c := range cases {
+		actual := c.err.Error()
+		if actual != c.expect {
+			t.Fatalf("expect %s, got %s", c.expect, actual)
+		}
+	}
 }

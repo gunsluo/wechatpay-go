@@ -16,7 +16,11 @@ package wechatpay
 
 import (
 	"context"
+	"crypto/rsa"
+	"io/ioutil"
+	"net/http"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
@@ -28,12 +32,14 @@ func TestDoForPay(t *testing.T) {
 	}
 
 	if client == nil {
-		t.Fail()
+		t.Fatal("client is nil")
 	}
 
 	cases := []struct {
-		req  *PayRequest
-		resp *PayResponse
+		req       *PayRequest
+		resp      *PayResponse
+		transport *mockTransport
+		pass      bool
 	}{
 		{
 			&PayRequest{
@@ -53,14 +59,76 @@ func TestDoForPay(t *testing.T) {
 			&PayResponse{
 				CodeUrl: "weixin://wxpay/bizpayurl/up?pr=NwY5Mz9&groupid=00",
 			},
+			nil,
+			true,
+		},
+		{
+			&PayRequest{
+				AppId:       client.config.AppId,
+				MchId:       client.config.MchId,
+				Description: "for testing",
+				OutTradeNo:  "forxxxxxxxxx",
+				TimeExpire:  time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+				Attach:      "cipher code",
+				NotifyUrl:   "https://luoji.live/notify",
+				Amount: PayAmount{
+					Total:    1,
+					Currency: "CNY",
+				},
+			},
+			&PayResponse{
+				CodeUrl: "weixin://wxpay/bizpayurl/up?pr=NwY5Mz9&groupid=00",
+			},
+			nil,
+			true,
+		},
+		{
+			&PayRequest{
+				AppId:       client.config.AppId,
+				MchId:       client.config.MchId,
+				Description: "for testing",
+				OutTradeNo:  "forxxxxxxxxx",
+				TimeExpire:  time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+				Attach:      "cipher code",
+				NotifyUrl:   "https://luoji.live/notify",
+				Amount: PayAmount{
+					Total:    1,
+					Currency: "CNY",
+				},
+			},
+			&PayResponse{
+				CodeUrl: "weixin://wxpay/bizpayurl/up?pr=NwY5Mz9&groupid=00",
+			},
+			&mockTransport{
+				RoundTripFn: func(req *http.Request) (*http.Response, error) {
+					var resp = &http.Response{
+						StatusCode: http.StatusOK,
+					}
+
+					resp.Header = http.Header{}
+					resp.Body = ioutil.NopCloser(strings.NewReader("{}"))
+					return resp, nil
+				},
+			},
+			false,
 		},
 	}
 
 	ctx := context.Background()
 	for _, c := range cases {
+		if c.transport != nil {
+			client.config.opts.transport = c.transport
+			client.publicKeys = make(map[string]*rsa.PublicKey)
+		}
+
 		resp, err := c.req.Do(ctx, client)
+		pass := err == nil
+		if pass != c.pass {
+			t.Fatalf("expect %v, got %v, err: %v", c.pass, pass, err)
+		}
+
 		if err != nil {
-			t.Fatal(err)
+			continue
 		}
 
 		if !reflect.DeepEqual(c.resp, resp) {
