@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/gunsluo/wechatpay-go/blob/master/LICENSE)
 [![CI](https://github.com/gunsluo/wechatpay-go/workflows/ci/badge.svg)](https://github.com/gunsluo/wechatpay-go/actions?query=branch%3Amaster)
 [![codecov](https://codecov.io/gh/gunsluo/wechatpay-go/branch/master/graph/badge.svg?token=VFZKUPNGXN)](https://codecov.io/gh/gunsluo/wechatpay-go)
-
+[![Go Report Card](https://goreportcard.com/badge/github.com/gunsluo/wechatpay-go)](https://goreportcard.com/report/github.com/gunsluo/wechatpay-go)
 
 ## Introduction
 
