@@ -17,6 +17,18 @@ package wechatpay
 import (
 	"context"
 	"net/http"
+	"time"
+)
+
+const (
+	TradeStateSuccess    = "SUCCESS"
+	TradeStateRefund     = "REFUND"
+	TradeStateNotPay     = "NOTPAY"
+	TradeStateClosed     = "CLOSED"
+	TradeStateRevoked    = "REVOKED"
+	TradeStateUserPaying = "USERPAYING"
+	TradeStatePayError   = "PAYERROR"
+	TradeStateAccept     = "ACCEPT"
 )
 
 // QueryRequest is the request for query transaction
@@ -37,12 +49,17 @@ type QueryResponse struct {
 	TradeStateDesc string    `json:"trade_state_desc"`
 	BankType       string    `json:"bank_type,omitempty"`
 	Attach         string    `json:"attach,omitempty"`
-	SuccessTime    string    `json:"success_time,omitempty"`
+	SuccessTime    time.Time `json:"success_time,omitempty"`
 	Payer          Payer     `json:"payer"`
 
 	Amount    TransactionAmount     `json:"amount,omitempty"`
 	SceneInfo *TransactionSceneInfo `json:"scene_info,omitempty"`
 	Promotion []*PromotionDetail    `json:"promotion_detail,omitempty"`
+}
+
+// IsSuccess check if the transactions pay success
+func (q QueryResponse) IsSuccess() bool {
+	return q.TradeState == TradeStateSuccess
 }
 
 // Payer is the payer of the transaction
@@ -81,11 +98,11 @@ type PromotionDetail struct {
 
 // TransactionGoodDetail is the good information about the transaction
 type TransactionGoodDetail struct {
-	GoodsId          string `json:"goods_id"`
-	Quantity         int    `json:"quantity"`
-	UnitPrice        int    `json:"unit_price"`
-	WechatpayGoodsId int    `json:"discount_amount"`
-	GoodsRemark      string `json:"goods_remark,omitempty"`
+	GoodsId        string `json:"goods_id"`
+	Quantity       int    `json:"quantity"`
+	UnitPrice      int    `json:"unit_price"`
+	DiscountAmount int    `json:"discount_amount"`
+	GoodsRemark    string `json:"goods_remark,omitempty"`
 }
 
 // Do send the request of query transaction
