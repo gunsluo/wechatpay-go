@@ -42,7 +42,7 @@ type QueryResponse struct {
 
 	Amount    TransactionAmount     `json:"amount,omitempty"`
 	SceneInfo *TransactionSceneInfo `json:"scene_info,omitempty"`
-	Promotion *PromotionDetail      `json:"promotion_detail,omitempty"`
+	Promotion []*PromotionDetail    `json:"promotion_detail,omitempty"`
 }
 
 // Payer is the payer of the transaction
@@ -89,16 +89,17 @@ type TransactionGoodDetail struct {
 }
 
 // Do send the request of query transaction
-func (r *QueryRequest) Do(ctx context.Context, c Client) error {
+func (r *QueryRequest) Do(ctx context.Context, c Client) (*QueryResponse, error) {
 	url := r.url(c.Config().Options().Domain)
 
 	resp := &QueryResponse{}
 	if err := c.Do(ctx, http.MethodGet, url).Scan(resp); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return resp, nil
 }
+
 func (r *QueryRequest) url(domain string) string {
 	if r.TransactionId != "" {
 		return domain + "/v3/pay/transactions/id/" + r.TransactionId + "?mchid=" + r.MchId
