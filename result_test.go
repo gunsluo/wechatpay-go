@@ -28,33 +28,33 @@ func TestResult(t *testing.T) {
 			&Result{
 				Body: []byte(`{"code_url":"https://xxx.com"}`),
 			},
-			&PayResponse{"https://xxx.com"},
+			&PayResponse{CodeUrl: "https://xxx.com"},
 			true,
 		},
 		{
 			&Result{
 				Err: &Error{},
 			},
-			&PayResponse{"https://xxx.com"},
+			&PayResponse{CodeUrl: "https://xxx.com"},
 			false,
 		},
 		{
 			&Result{
 				Body: []byte(``),
 			},
-			&PayResponse{"https://xxx.com"},
+			&PayResponse{CodeUrl: "https://xxx.com"},
 			true,
 		},
 		{
 			&Result{},
-			&PayResponse{"https://xxx.com"},
+			&PayResponse{CodeUrl: "https://xxx.com"},
 			true,
 		},
 		{
 			&Result{
 				Body: []byte(`{"`),
 			},
-			&PayResponse{"https://xxx.com"},
+			&PayResponse{CodeUrl: "https://xxx.com"},
 			false,
 		},
 	}

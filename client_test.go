@@ -790,6 +790,12 @@ func mockData(req *http.Request, privateKey *rsa.PrivateKey) (*http.Response, er
 		resp.Header.Set("Wechatpay-Serial", mockSerialNo)
 		resp.Body = ioutil.NopCloser(strings.NewReader(mockBody))
 	case "/v3/pay/transactions/native":
+		fallthrough
+	case "/v3/pay/transactions/app":
+		fallthrough
+	case "/v3/pay/transactions/h5":
+		fallthrough
+	case "/v3/pay/transactions/jsapi":
 		mockBody := `{"code_url":"weixin://wxpay/bizpayurl/up?pr=NwY5Mz9&groupid=00"}`
 
 		// mock certificates signature

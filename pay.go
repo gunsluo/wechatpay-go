@@ -16,6 +16,8 @@ package wechatpay
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -59,18 +61,20 @@ type StoreInfo struct {
 
 // PayRequest is request when send a payment
 type PayRequest struct {
-	AppId       string        `json:"appid"`
-	MchId       string        `json:"mchid"`
-	Description string        `json:"description"`
-	OutTradeNo  string        `json:"out_trade_no"`
-	TimeExpire  string        `json:"time_expire,omitempty"`
-	Attach      string        `json:"attach,omitempty"`
-	NotifyUrl   string        `json:"notify_url"`
-	GoodsTag    string        `json:"goods_tag,omitempty"`
-	Amount      PayAmount     `json:"amount"`
-	Detail      *PayDetail    `json:"detail,omitempty"`
-	SceneInfo   *PaySceneInfo `json:"scene_info,omitempty"`
-	TradeType   TradeType     `json:"-"`
+	AppId       string    `json:"appid"`
+	MchId       string    `json:"mchid"`
+	Description string    `json:"description"`
+	OutTradeNo  string    `json:"out_trade_no"`
+	TimeExpire  string    `json:"time_expire,omitempty"`
+	Attach      string    `json:"attach,omitempty"`
+	NotifyUrl   string    `json:"notify_url"`
+	GoodsTag    string    `json:"goods_tag,omitempty"`
+	Amount      PayAmount `json:"amount"`
+	// Only set up Payer for JSAPI
+	Payer     *Payer        `json:"payer,omitempty"`
+	Detail    *PayDetail    `json:"detail,omitempty"`
+	SceneInfo *PaySceneInfo `json:"scene_info,omitempty"`
+	TradeType TradeType     `json:"-"`
 }
 
 type TradeType string
@@ -84,11 +88,31 @@ const (
 
 // PayResponse is response when send a payment
 type PayResponse struct {
+	// The CodeUrl is returned when the merchant used Native
 	CodeUrl string `json:"code_url"`
+	// The CodeUrl is returned when the merchant used JSAPI APP
+	PrepayId string `json:"prepay_id"`
+	// The CodeUrl is returned when the merchant used H5
+	H5Url string `json:"h5_url"`
 }
 
 // Pay send a transaction and invoke wechat payment
 func (r *PayRequest) Do(ctx context.Context, c Client) (*PayResponse, error) {
+	if r.TradeType == "" {
+		r.TradeType = Native
+	}
+
+	switch r.TradeType {
+	case JSAPI:
+		if r.Payer == nil || r.Payer.OpenId == "" {
+			return nil, errors.New("payer is required for JSAPI")
+		}
+	default:
+		if r.Payer != nil {
+			return nil, fmt.Errorf("don't set payer is for %v", r.TradeType)
+		}
+	}
+
 	url := r.url(c.Config().Options().Domain)
 
 	resp := &PayResponse{}
@@ -100,10 +124,5 @@ func (r *PayRequest) Do(ctx context.Context, c Client) (*PayResponse, error) {
 }
 
 func (r *PayRequest) url(domain string) string {
-	tradeType := string(r.TradeType)
-	if tradeType == "" {
-		tradeType = string(Native)
-	}
-
-	return domain + "/v3/pay/transactions/" + strings.ToLower(tradeType)
+	return domain + "/v3/pay/transactions/" + strings.ToLower(string(r.TradeType))
 }
