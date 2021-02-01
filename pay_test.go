@@ -47,7 +47,7 @@ func TestDoForPay(t *testing.T) {
 				MchId:       client.config.MchId,
 				Description: "for testing",
 				OutTradeNo:  "forxxxxxxxxx",
-				TimeExpire:  time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+				TimeExpire:  time.Now().Add(10 * time.Minute),
 				Attach:      "cipher code",
 				NotifyUrl:   "https://luoji.live/notify",
 				Amount: PayAmount{
@@ -68,7 +68,7 @@ func TestDoForPay(t *testing.T) {
 				MchId:       client.config.MchId,
 				Description: "for testing",
 				OutTradeNo:  "forxxxxxxxxx",
-				TimeExpire:  time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+				TimeExpire:  time.Now().Add(10 * time.Minute),
 				Attach:      "cipher code",
 				NotifyUrl:   "https://luoji.live/notify",
 				Amount: PayAmount{
@@ -90,7 +90,7 @@ func TestDoForPay(t *testing.T) {
 				MchId:       client.config.MchId,
 				Description: "for testing",
 				OutTradeNo:  "forxxxxxxxxx",
-				TimeExpire:  time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+				TimeExpire:  time.Now().Add(10 * time.Minute),
 				Attach:      "cipher code",
 				NotifyUrl:   "https://luoji.live/notify",
 				Amount: PayAmount{
@@ -110,7 +110,7 @@ func TestDoForPay(t *testing.T) {
 				MchId:       client.config.MchId,
 				Description: "for testing",
 				OutTradeNo:  "forxxxxxxxxx",
-				TimeExpire:  time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+				TimeExpire:  time.Now().Add(10 * time.Minute),
 				Attach:      "cipher code",
 				NotifyUrl:   "https://luoji.live/notify",
 				Amount: PayAmount{
@@ -140,7 +140,7 @@ func TestDoForPay(t *testing.T) {
 				MchId:       client.config.MchId,
 				Description: "for testing",
 				OutTradeNo:  "forxxxxxxxxx",
-				TimeExpire:  time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+				TimeExpire:  time.Now().Add(10 * time.Minute),
 				Attach:      "cipher code",
 				NotifyUrl:   "https://luoji.live/notify",
 				Amount: PayAmount{
@@ -161,7 +161,7 @@ func TestDoForPay(t *testing.T) {
 				MchId:       client.config.MchId,
 				Description: "for testing",
 				OutTradeNo:  "forxxxxxxxxx",
-				TimeExpire:  time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+				TimeExpire:  time.Now().Add(10 * time.Minute),
 				Attach:      "cipher code",
 				NotifyUrl:   "https://luoji.live/notify",
 				Amount: PayAmount{
@@ -183,7 +183,7 @@ func TestDoForPay(t *testing.T) {
 				MchId:       client.config.MchId,
 				Description: "for testing",
 				OutTradeNo:  "forxxxxxxxxx",
-				TimeExpire:  time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+				TimeExpire:  time.Now().Add(10 * time.Minute),
 				Attach:      "cipher code",
 				NotifyUrl:   "https://luoji.live/notify",
 				Amount: PayAmount{

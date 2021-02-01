@@ -14,6 +14,8 @@
 
 package wechatpay
 
+import "time"
+
 // notify
 
 // RefundRequest is request when apply refund
@@ -48,16 +50,16 @@ type RefundGoodDetail struct {
 
 // RefundResponse is the response for refund transaction
 type RefundResponse struct {
-	RefundId            string `json:"refund_id"`
-	OutRefundNo         string `json:"out_refund_no"`
-	TransactionId       string `json:"transaction_id"`
-	OutTradeNo          string `json:"out_trade_no"`
-	Channel             string `json:"channel"`
-	UserReceivedAccount string `json:"user_received_account"`
-	SuccessTime         string `json:"success_time,omitempty"`
-	CreateTime          string `json:"create_time"`
-	Status              string `json:"status"`
-	FundsAccount        string `json:"funds_account,omitempty"`
+	RefundId            string    `json:"refund_id"`
+	OutRefundNo         string    `json:"out_refund_no"`
+	TransactionId       string    `json:"transaction_id"`
+	OutTradeNo          string    `json:"out_trade_no"`
+	Channel             string    `json:"channel"`
+	UserReceivedAccount string    `json:"user_received_account"`
+	SuccessTime         time.Time `json:"success_time,omitempty"`
+	CreateTime          time.Time `json:"create_time"`
+	Status              string    `json:"status"`
+	FundsAccount        string    `json:"funds_account,omitempty"`
 
 	Amount    RefundAmountDetail     `json:"amount"`
 	Promotion *RefundPromotionDetail `json:"promotion_detail,omitempty"`

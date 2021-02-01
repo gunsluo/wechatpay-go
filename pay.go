@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // PayAmount is total amount paid, have total and currency.
@@ -65,7 +66,7 @@ type PayRequest struct {
 	MchId       string    `json:"mchid"`
 	Description string    `json:"description"`
 	OutTradeNo  string    `json:"out_trade_no"`
-	TimeExpire  string    `json:"time_expire,omitempty"`
+	TimeExpire  time.Time `json:"time_expire,omitempty"`
 	Attach      string    `json:"attach,omitempty"`
 	NotifyUrl   string    `json:"notify_url"`
 	GoodsTag    string    `json:"goods_tag,omitempty"`
