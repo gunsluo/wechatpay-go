@@ -53,6 +53,14 @@ func Timeout(timeout time.Duration) Option {
 	}
 }
 
+// CertRefreshTime set max cert refresh time, default
+// value is 12h.
+func CertRefreshTime(refreshTime time.Duration) Option {
+	return func(o *options) {
+		o.refreshTime = refreshTime
+	}
+}
+
 func (c *Config) Options() *options {
 	return &c.opts
 }
@@ -62,15 +70,17 @@ type options struct {
 	Schema  string
 	CertUrl string
 
-	transport http.RoundTripper
-	timeout   time.Duration
+	transport   http.RoundTripper
+	timeout     time.Duration
+	refreshTime time.Duration
 }
 
 func defaultOptions() options {
 	return options{
-		Schema:  defaultSchema,
-		Domain:  defaultDomain,
-		CertUrl: defaultDomain + "/v3/certificates",
+		Schema:      defaultSchema,
+		Domain:      defaultDomain,
+		CertUrl:     defaultDomain + "/v3/certificates",
+		refreshTime: 12 * time.Hour,
 	}
 }
 

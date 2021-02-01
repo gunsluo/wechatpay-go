@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -58,7 +59,11 @@ func mockNewClient() (*client, error) {
 				SerialNo:       serialNo,
 				PrivateKeyPath: privateKeyPath,
 			},
-		}, Transport(mocktransport), Timeout(time.Minute))
+		},
+		Transport(mocktransport),
+		Timeout(time.Minute),
+		CertRefreshTime(10*time.Minute),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -619,7 +624,7 @@ func TestVerifySignatureForClient(t *testing.T) {
 	for _, c := range cases {
 		if c.mocktransport != nil {
 			client.config.opts.transport = c.mocktransport
-			client.publicKeys = make(map[string]*rsa.PublicKey)
+			client.secrets.clear()
 		}
 		err = client.VerifySignature(ctx, c.result)
 		pass := err == nil
@@ -712,7 +717,7 @@ func TestOnceDownloadCertificates(t *testing.T) {
 	ctx := context.Background()
 	for _, c := range cases {
 		client.config.opts.transport = c.mocktransport
-		client.publicKeys = make(map[string]*rsa.PublicKey)
+		client.secrets.clear()
 		err := client.onceDownloadCertificates(ctx)
 		pass := err == nil
 		if pass != c.pass {
@@ -738,6 +743,99 @@ func TestGenRequestSignature(t *testing.T) {
 		req := genRequestSignature(c.method, c.url, c.body)
 		if req == nil {
 			t.Fatal("req is nil")
+		}
+	}
+}
+
+func TestSecrets(t *testing.T) {
+	cases := []struct {
+		secrets *secrets
+		expect  bool
+	}{
+		{
+			&secrets{},
+			true,
+		},
+		{
+			&secrets{
+				all: map[string]*rsa.PublicKey{
+					"m": {},
+				},
+			},
+			true,
+		},
+		{
+			&secrets{
+				deadline: time.Now().Add(time.Minute),
+				all:      map[string]*rsa.PublicKey{},
+			},
+			true,
+		},
+		{
+			&secrets{
+				deadline: time.Now().Add(time.Minute),
+				all: map[string]*rsa.PublicKey{
+					"m": {},
+				},
+			},
+			false,
+		},
+	}
+
+	for _, c := range cases {
+		// c.secrets.clear()
+		actual := c.secrets.isUpgrade()
+		if actual != c.expect {
+			t.Fatalf("expect %v, got %v", c.expect, actual)
+		}
+	}
+}
+
+func TestSecretsWithGoroutine(t *testing.T) {
+	var secrets secrets
+	secrets.clear()
+
+	cases := []struct {
+		expect bool
+	}{
+		{false},
+		{false},
+	}
+
+	actual := []bool{false, false}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		secrets.add("m", &rsa.PublicKey{}, time.Minute)
+		secrets.add("m1", &rsa.PublicKey{}, time.Minute)
+		wg.Done()
+	}()
+
+	go func() {
+		secrets.add("m", &rsa.PublicKey{}, time.Minute)
+		secrets.add("m2", &rsa.PublicKey{}, time.Minute)
+		wg.Done()
+	}()
+
+	wg.Wait()
+	wg.Add(2)
+	go func() {
+		isUpgrade := secrets.isUpgrade()
+		actual[0] = isUpgrade
+		wg.Done()
+	}()
+
+	go func() {
+		isUpgrade := secrets.isUpgrade()
+		actual[1] = isUpgrade
+		wg.Done()
+	}()
+
+	wg.Wait()
+	for i, c := range cases {
+		if actual[i] != c.expect {
+			t.Fatalf("expect %v, got %v", c.expect, actual[i])
 		}
 	}
 }
