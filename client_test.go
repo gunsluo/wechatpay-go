@@ -820,6 +820,57 @@ func mockData(req *http.Request, privateKey *rsa.PrivateKey) (*http.Response, er
 		resp.Header.Set("Wechatpay-Timestamp", strconv.FormatInt(mockTimestamp, 10))
 		resp.Header.Set("Wechatpay-Serial", mockSerialNo)
 		resp.Body = ioutil.NopCloser(strings.NewReader(mockBody))
+	case "/v3/pay/transactions/id/4200000914202101195554393855":
+		fallthrough
+	case "/v3/pay/transactions/out-trade-no/S20210119074247105778399200":
+		mockBody := `{"appid":"wxd678efh567hg6787","mchid":"1230000109","out_trade_no":"S20210119074247105778399200","transaction_id":"4200000914202101195554393855","trade_type":"NATIVE","trade_state":"SUCCESS","trade_state_desc":"支付成功","bank_type":"OTHERS","success_time":"2021-01-19T15:43:01+08:00","payer":{"openid":"ofyak5qYxYJVnhTlrkk_ACWIVrHI"},"amount":{"total":1,"payer_total":1,"currency":"CNY","payer_currency":"CNY"}}`
+		// mock certificates signature
+		mockResp := &sign.ResponseSignature{
+			Body:      []byte(mockBody),
+			Timestamp: mockTimestamp,
+			Nonce:     mockNonce,
+		}
+		plain, err := mockResp.Marshal()
+		if err != nil {
+			return nil, err
+		}
+
+		signature, err := sign.SignatureSHA256WithRSA(privateKey, plain)
+		if err != nil {
+			return nil, err
+		}
+
+		resp.Header = http.Header{}
+		resp.Header.Set("Wechatpay-Nonce", mockNonce)
+		resp.Header.Set("Wechatpay-Signature", signature)
+		resp.Header.Set("Wechatpay-Timestamp", strconv.FormatInt(mockTimestamp, 10))
+		resp.Header.Set("Wechatpay-Serial", mockSerialNo)
+		resp.Body = ioutil.NopCloser(strings.NewReader(mockBody))
+	case "/v3/pay/transactions/out-trade-no/S20210119NOTFOUND":
+		mockBody := `{"status":404,"code":"ORDER_NOT_EXIST","message":"订单不存在"}`
+		// mock certificates signature
+		mockResp := &sign.ResponseSignature{
+			Body:      []byte(mockBody),
+			Timestamp: mockTimestamp,
+			Nonce:     mockNonce,
+		}
+		plain, err := mockResp.Marshal()
+		if err != nil {
+			return nil, err
+		}
+
+		signature, err := sign.SignatureSHA256WithRSA(privateKey, plain)
+		if err != nil {
+			return nil, err
+		}
+		resp.Header = http.Header{}
+		resp.Header.Set("Wechatpay-Nonce", mockNonce)
+		resp.Header.Set("Wechatpay-Signature", signature)
+		resp.Header.Set("Wechatpay-Timestamp", strconv.FormatInt(mockTimestamp, 10))
+		resp.Header.Set("Wechatpay-Serial", mockSerialNo)
+		resp.StatusCode = http.StatusNotFound
+		resp.Body = ioutil.NopCloser(strings.NewReader(mockBody))
+
 	case "/v3/refund/domestic/refunds":
 		mockBody := `{ "refund_id": "50300807092021020105990201735", "out_refund_no": "S20210201151309277501", "transaction_id": "4200000925202101284997714292", "out_trade_no": "S20210128170702357723", "channel": "ORIGINAL", "user_received_account": "支付用户零钱", "success_time": "0001-01-01T00:00:00Z", "create_time": "2021-02-01T15:13:10+08:00", "status": "PROCESSING", "funds_account": "UNAVAILABLE", "amount": { "total": 1, "refund": 1, "payer_total": 1, "payer_refund": 1, "settlement_total": 1, "settlement_refund": 1, "discount_refund": 0, "currency": "CNY" } }`
 

@@ -43,8 +43,6 @@ func TestDoForPay(t *testing.T) {
 	}{
 		{
 			&PayRequest{
-				AppId:       client.config.AppId,
-				MchId:       client.config.MchId,
 				Description: "for testing",
 				OutTradeNo:  "forxxxxxxxxx",
 				TimeExpire:  time.Now().Add(10 * time.Minute),

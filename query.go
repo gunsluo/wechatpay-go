@@ -107,6 +107,10 @@ type TransactionGoodDetail struct {
 
 // Do send the request of query transaction
 func (r *QueryRequest) Do(ctx context.Context, c Client) (*QueryResponse, error) {
+	if r.MchId == "" {
+		r.MchId = c.Config().MchId
+	}
+
 	url := r.url(c.Config().Options().Domain)
 
 	resp := &QueryResponse{}
