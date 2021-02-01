@@ -91,6 +91,7 @@ type RefundPromotionDetail struct {
 	GoodsDetail []RefundGoodDetail `json:"goods_detail,omitempty"`
 }
 
+// Do send the refund request and return refund response
 func (r *RefundRequest) Do(ctx context.Context, c Client) (*RefundResponse, error) {
 	url := r.url(c.Config().Options().Domain)
 
