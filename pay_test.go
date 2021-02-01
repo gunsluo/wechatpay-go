@@ -47,7 +47,7 @@ func TestDoForPay(t *testing.T) {
 				MchId:       client.config.MchId,
 				Description: "for testing",
 				OutTradeNo:  "forxxxxxxxxx",
-				TimeExpire:  time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+				TimeExpire:  time.Now().Add(10 * time.Minute),
 				Attach:      "cipher code",
 				NotifyUrl:   "https://luoji.live/notify",
 				Amount: PayAmount{
@@ -68,7 +68,29 @@ func TestDoForPay(t *testing.T) {
 				MchId:       client.config.MchId,
 				Description: "for testing",
 				OutTradeNo:  "forxxxxxxxxx",
-				TimeExpire:  time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+				TimeExpire:  time.Now().Add(10 * time.Minute),
+				Attach:      "cipher code",
+				NotifyUrl:   "https://luoji.live/notify",
+				Amount: PayAmount{
+					Total:    1,
+					Currency: "CNY",
+				},
+				Payer:     &Payer{"openid"},
+				TradeType: JSAPI,
+			},
+			&PayResponse{
+				CodeUrl: "weixin://wxpay/bizpayurl/up?pr=NwY5Mz9&groupid=00",
+			},
+			nil,
+			true,
+		},
+		{
+			&PayRequest{
+				AppId:       client.config.AppId,
+				MchId:       client.config.MchId,
+				Description: "for testing",
+				OutTradeNo:  "forxxxxxxxxx",
+				TimeExpire:  time.Now().Add(10 * time.Minute),
 				Attach:      "cipher code",
 				NotifyUrl:   "https://luoji.live/notify",
 				Amount: PayAmount{
@@ -88,7 +110,7 @@ func TestDoForPay(t *testing.T) {
 				MchId:       client.config.MchId,
 				Description: "for testing",
 				OutTradeNo:  "forxxxxxxxxx",
-				TimeExpire:  time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+				TimeExpire:  time.Now().Add(10 * time.Minute),
 				Attach:      "cipher code",
 				NotifyUrl:   "https://luoji.live/notify",
 				Amount: PayAmount{
@@ -110,6 +132,70 @@ func TestDoForPay(t *testing.T) {
 					return resp, nil
 				},
 			},
+			false,
+		},
+		{
+			&PayRequest{
+				AppId:       client.config.AppId,
+				MchId:       client.config.MchId,
+				Description: "for testing",
+				OutTradeNo:  "forxxxxxxxxx",
+				TimeExpire:  time.Now().Add(10 * time.Minute),
+				Attach:      "cipher code",
+				NotifyUrl:   "https://luoji.live/notify",
+				Amount: PayAmount{
+					Total:    1,
+					Currency: "CNY",
+				},
+				Payer: &Payer{},
+			},
+			&PayResponse{
+				CodeUrl: "weixin://wxpay/bizpayurl/up?pr=NwY5Mz9&groupid=00",
+			},
+			nil,
+			false,
+		},
+		{
+			&PayRequest{
+				AppId:       client.config.AppId,
+				MchId:       client.config.MchId,
+				Description: "for testing",
+				OutTradeNo:  "forxxxxxxxxx",
+				TimeExpire:  time.Now().Add(10 * time.Minute),
+				Attach:      "cipher code",
+				NotifyUrl:   "https://luoji.live/notify",
+				Amount: PayAmount{
+					Total:    1,
+					Currency: "CNY",
+				},
+				Payer:     &Payer{},
+				TradeType: JSAPI,
+			},
+			&PayResponse{
+				CodeUrl: "weixin://wxpay/bizpayurl/up?pr=NwY5Mz9&groupid=00",
+			},
+			nil,
+			false,
+		},
+		{
+			&PayRequest{
+				AppId:       client.config.AppId,
+				MchId:       client.config.MchId,
+				Description: "for testing",
+				OutTradeNo:  "forxxxxxxxxx",
+				TimeExpire:  time.Now().Add(10 * time.Minute),
+				Attach:      "cipher code",
+				NotifyUrl:   "https://luoji.live/notify",
+				Amount: PayAmount{
+					Total:    1,
+					Currency: "CNY",
+				},
+				TradeType: JSAPI,
+			},
+			&PayResponse{
+				CodeUrl: "weixin://wxpay/bizpayurl/up?pr=NwY5Mz9&groupid=00",
+			},
+			nil,
 			false,
 		},
 	}

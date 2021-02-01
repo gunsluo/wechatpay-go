@@ -64,7 +64,7 @@ func (q QueryResponse) IsSuccess() bool {
 
 // Payer is the payer of the transaction
 type Payer struct {
-	Openid string `json:"openid"`
+	OpenId string `json:"openid"`
 }
 
 // TransactionAmount is tatal amount paid, have total and currency.

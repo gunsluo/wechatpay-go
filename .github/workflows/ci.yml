@@ -25,4 +25,4 @@ jobs:
       run: make run-test
     - name: uploadcoverage
       run: bash <(curl -s https://codecov.io/bash)
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      # if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
