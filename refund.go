@@ -14,9 +14,12 @@
 
 package wechatpay
 
-import "time"
-
-// notify
+import (
+	"context"
+	"errors"
+	"net/http"
+	"time"
+)
 
 // RefundRequest is request when apply refund
 type RefundRequest struct {
@@ -61,8 +64,8 @@ type RefundResponse struct {
 	Status              string    `json:"status"`
 	FundsAccount        string    `json:"funds_account,omitempty"`
 
-	Amount    RefundAmountDetail     `json:"amount"`
-	Promotion *RefundPromotionDetail `json:"promotion_detail,omitempty"`
+	Amount    RefundAmountDetail       `json:"amount"`
+	Promotion []*RefundPromotionDetail `json:"promotion_detail,omitempty"`
 }
 
 // RefundAmountDetail is total amount refund.
@@ -86,4 +89,46 @@ type RefundPromotionDetail struct {
 	RefundAmount int    `json:"refund_amount"`
 
 	GoodsDetail []RefundGoodDetail `json:"goods_detail,omitempty"`
+}
+
+func (r *RefundRequest) Do(ctx context.Context, c Client) (*RefundResponse, error) {
+	url := r.url(c.Config().Options().Domain)
+
+	if err := r.validate(); err != nil {
+		return nil, err
+	}
+
+	resp := &RefundResponse{}
+	if err := c.Do(ctx, http.MethodPost, url, r).Scan(resp); err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (r *RefundRequest) validate() error {
+	if r.TransactionId == "" {
+		return errors.New("transaction_id can't be empty")
+	}
+	if r.OutRefundNo == "" {
+		return errors.New("out_refund_no can't be empty")
+	}
+	if r.OutTradeNo == "" {
+		return errors.New("out_trade_no can't be empty")
+	}
+	if r.Amount.Refund <= 0 {
+		return errors.New("refund can't less than 0")
+	}
+	if r.Amount.Total <= 0 {
+		return errors.New("total can't less than 0")
+	}
+	if r.Amount.Currency == "" {
+		return errors.New("currency can't be empty")
+	}
+
+	return nil
+}
+
+func (r *RefundRequest) url(domain string) string {
+	return domain + `/v3/refund/domestic/refunds`
 }
