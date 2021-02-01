@@ -181,7 +181,7 @@ func (c *client) do(ctx context.Context, reqSign *sign.RequestSignature) *Result
 	}
 	defer httpResp.Body.Close()
 
-	if httpResp.StatusCode != http.StatusOK {
+	if httpResp.StatusCode >= http.StatusMultipleChoices {
 		message, err := ioutil.ReadAll(httpResp.Body)
 		if err != nil {
 			return &Result{Err: err}
@@ -210,9 +210,12 @@ func (c *client) do(ctx context.Context, reqSign *sign.RequestSignature) *Result
 		timestamp = i
 	}
 
-	body, err := ioutil.ReadAll(httpResp.Body)
-	if err != nil {
-		return &Result{Err: err}
+	var body []byte
+	if httpResp.StatusCode != http.StatusNoContent {
+		body, err = ioutil.ReadAll(httpResp.Body)
+		if err != nil {
+			return &Result{Err: err}
+		}
 	}
 
 	result := &Result{

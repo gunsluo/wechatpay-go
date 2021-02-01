@@ -35,6 +35,8 @@ func (r *CloseRequest) Do(ctx context.Context, c Client) error {
 
 	return nil
 }
+
+
 func (r *CloseRequest) url(domain string) string {
 	return domain + "/v3/pay/transactions/out-trade-no/" + r.OutTradeNo + "/close"
 }

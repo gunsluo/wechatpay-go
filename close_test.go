@@ -13,3 +13,53 @@
 // limitations under the License.
 
 package wechatpay
+
+import (
+	"context"
+	"crypto/rsa"
+	"testing"
+)
+
+func TestCloseRequest_Do(t *testing.T) {
+	client, err := mockNewClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if client == nil {
+		t.Fatal("client is nil")
+	}
+
+	cases := []struct {
+		req       *CloseRequest
+		transport *mockTransport
+		pass      bool
+	}{
+		{
+			&CloseRequest{
+				MchId:      client.config.MchId,
+				OutTradeNo: "fortest",
+			},
+			nil,
+			true,
+		},
+	}
+
+	ctx := context.Background()
+	for _, c := range cases {
+		if c.transport != nil {
+			client.config.opts.transport = c.transport
+			client.publicKeys = make(map[string]*rsa.PublicKey)
+		}
+
+		err := c.req.Do(ctx, client)
+		pass := err == nil
+		if pass != c.pass {
+			t.Fatalf("expect %v, got %v, err: %v", c.pass, pass, err)
+		}
+
+		if err != nil {
+			continue
+		}
+	}
+}

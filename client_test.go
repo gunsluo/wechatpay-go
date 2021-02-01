@@ -845,6 +845,31 @@ func mockData(req *http.Request, privateKey *rsa.PrivateKey) (*http.Response, er
 		resp.Header.Set("Wechatpay-Serial", mockSerialNo)
 		resp.Body = ioutil.NopCloser(strings.NewReader(mockBody))
 
+	case "/v3/pay/transactions/out-trade-no/fortest/close":
+		resp.Header = http.Header{}
+		resp.StatusCode = 204
+		mockBody := ``
+		// mock certificates signature
+		mockResp := &sign.ResponseSignature{
+			Body:      []byte(mockBody),
+			Timestamp: mockTimestamp,
+			Nonce:     mockNonce,
+		}
+		plain, err := mockResp.Marshal()
+		if err != nil {
+			return nil, err
+		}
+
+		signature, err := sign.SignatureSHA256WithRSA(privateKey, plain)
+		if err != nil {
+			return nil, err
+		}
+		resp.Header.Set("Wechatpay-Nonce", mockNonce)
+		resp.Header.Set("Wechatpay-Signature", signature)
+		resp.Header.Set("Wechatpay-Timestamp", strconv.FormatInt(mockTimestamp, 10))
+		resp.Header.Set("Wechatpay-Serial", mockSerialNo)
+		resp.Body = ioutil.NopCloser(strings.NewReader(mockBody))
+
 	case "/v3/invalidresp":
 		resp.StatusCode = http.StatusInternalServerError
 		resp.Body = ioutil.NopCloser(strings.NewReader(`{"code":"ERROR_NAME","message":"ERROR_DESCRIPTION"}`))
