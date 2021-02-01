@@ -16,7 +16,6 @@ package wechatpay
 
 import (
 	"context"
-	"crypto/rsa"
 	"reflect"
 	"strings"
 	"testing"
@@ -215,7 +214,7 @@ func TestRefundDo(t *testing.T) {
 	for _, c := range cases {
 		if c.transport != nil {
 			client.config.opts.transport = c.transport
-			client.publicKeys = make(map[string]*rsa.PublicKey)
+			client.secrets.clear()
 		}
 
 		resp, err := c.req.Do(ctx, client)
