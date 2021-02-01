@@ -349,12 +349,12 @@ type secrets struct {
 }
 
 func (s *secrets) isUpgrade() bool {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 	if s.deadline.Before(time.Now()) {
 		return true
 	}
 
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
 	return len(s.all) == 0
 }
 
