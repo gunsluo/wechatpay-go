@@ -122,6 +122,10 @@ func TestDoForQuery(t *testing.T) {
 			continue
 		}
 
+		if !c.resp.IsSuccess() {
+			t.Fatal("invalid resp")
+		}
+
 		if !reflect.DeepEqual(c.resp, resp) {
 			t.Fatalf("expect %v, got %v", c.resp, resp)
 		}

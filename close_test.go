@@ -16,10 +16,13 @@ package wechatpay
 
 import (
 	"context"
+	"io/ioutil"
+	"net/http"
+	"strings"
 	"testing"
 )
 
-func TestCloseRequest_Do(t *testing.T) {
+func TestCloseRequestDo(t *testing.T) {
 	client, err := mockNewClient()
 	if err != nil {
 		t.Fatal(err)
@@ -41,6 +44,24 @@ func TestCloseRequest_Do(t *testing.T) {
 			},
 			nil,
 			true,
+		},
+		{
+			&CloseRequest{
+				MchId:      client.config.MchId,
+				OutTradeNo: "fortest",
+			},
+			&mockTransport{
+				RoundTripFn: func(req *http.Request) (*http.Response, error) {
+					var resp = &http.Response{
+						StatusCode: http.StatusOK,
+					}
+
+					resp.Header = http.Header{}
+					resp.Body = ioutil.NopCloser(strings.NewReader("{}"))
+					return resp, nil
+				},
+			},
+			false,
 		},
 	}
 
