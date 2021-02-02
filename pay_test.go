@@ -16,7 +16,6 @@ package wechatpay
 
 import (
 	"context"
-	"crypto/rsa"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -43,8 +42,6 @@ func TestDoForPay(t *testing.T) {
 	}{
 		{
 			&PayRequest{
-				AppId:       client.config.AppId,
-				MchId:       client.config.MchId,
 				Description: "for testing",
 				OutTradeNo:  "forxxxxxxxxx",
 				TimeExpire:  time.Now().Add(10 * time.Minute),
@@ -204,7 +201,7 @@ func TestDoForPay(t *testing.T) {
 	for _, c := range cases {
 		if c.transport != nil {
 			client.config.opts.transport = c.transport
-			client.publicKeys = make(map[string]*rsa.PublicKey)
+			client.secrets.clear()
 		}
 
 		resp, err := c.req.Do(ctx, client)

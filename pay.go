@@ -99,6 +99,14 @@ type PayResponse struct {
 
 // Pay send a transaction and invoke wechat payment
 func (r *PayRequest) Do(ctx context.Context, c Client) (*PayResponse, error) {
+	if r.AppId == "" {
+		r.AppId = c.Config().AppId
+	}
+
+	if r.MchId == "" {
+		r.MchId = c.Config().MchId
+	}
+
 	if r.TradeType == "" {
 		r.TradeType = Native
 	}

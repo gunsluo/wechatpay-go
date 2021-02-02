@@ -16,11 +16,13 @@ package wechatpay
 
 import (
 	"context"
-	"crypto/rsa"
+	"io/ioutil"
+	"net/http"
+	"strings"
 	"testing"
 )
 
-func TestCloseRequest_Do(t *testing.T) {
+func TestCloseRequestDo(t *testing.T) {
 	client, err := mockNewClient()
 	if err != nil {
 		t.Fatal(err)
@@ -43,13 +45,31 @@ func TestCloseRequest_Do(t *testing.T) {
 			nil,
 			true,
 		},
+		{
+			&CloseRequest{
+				MchId:      client.config.MchId,
+				OutTradeNo: "fortest",
+			},
+			&mockTransport{
+				RoundTripFn: func(req *http.Request) (*http.Response, error) {
+					var resp = &http.Response{
+						StatusCode: http.StatusOK,
+					}
+
+					resp.Header = http.Header{}
+					resp.Body = ioutil.NopCloser(strings.NewReader("{}"))
+					return resp, nil
+				},
+			},
+			false,
+		},
 	}
 
 	ctx := context.Background()
 	for _, c := range cases {
 		if c.transport != nil {
 			client.config.opts.transport = c.transport
-			client.publicKeys = make(map[string]*rsa.PublicKey)
+			client.secrets.clear()
 		}
 
 		err := c.req.Do(ctx, client)

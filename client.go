@@ -24,6 +24,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/gunsluo/wechatpay-go/v3/sign"
 )
@@ -36,10 +38,9 @@ type Client interface {
 }
 
 type client struct {
-	config Config
-
+	config     Config
+	secrets    secrets
 	privateKey *rsa.PrivateKey
-	publicKeys map[string]*rsa.PublicKey
 
 	genRequestSignature func(string, string, []byte) *sign.RequestSignature
 }
@@ -51,13 +52,14 @@ func NewClient(cfg Config, opts ...Option) (Client, error) {
 
 func newClient(cfg Config, opts ...Option) (*client, error) {
 	c := &client{
-		config:     cfg,
-		publicKeys: make(map[string]*rsa.PublicKey),
+		config: cfg,
 	}
 	c.config.opts = defaultOptions()
 	for _, opt := range opts {
 		opt(&c.config.opts)
 	}
+
+	c.secrets.clear()
 
 	if c.config.AppId == "" {
 		return nil, errors.New("AppId is required")
@@ -281,7 +283,8 @@ func upgradeCertWorkflow(ctx context.Context, c *client, reqSign *sign.RequestSi
 		if err != nil {
 			return err
 		}
-		c.publicKeys[cert.SerialNo] = publicKey
+
+		c.secrets.add(cert.SerialNo, publicKey, c.Config().opts.refreshTime)
 	}
 
 	return nil
@@ -294,8 +297,8 @@ func (c *client) VerifySignature(ctx context.Context, result *Result) error {
 		return err
 	}
 
-	publicKey, ok := c.publicKeys[result.SerialNo]
-	if !ok {
+	publicKey := c.secrets.get(result.SerialNo)
+	if publicKey == nil {
 		return errors.New("certificate not found")
 	}
 
@@ -319,8 +322,7 @@ func (c *client) onceDownloadCertificates(ctx context.Context) error {
 	}
 	ctx = context.WithValue(ctx, ctxKeyOnceDlCert, struct{}{})
 
-	// TODO: maybe set a expried time for this
-	if len(c.publicKeys) > 0 {
+	if !c.secrets.isUpgrade() {
 		return nil
 	}
 
@@ -338,4 +340,42 @@ func (c *client) onceDownloadCertificates(ctx context.Context) error {
 
 func genRequestSignature(method, url string, body []byte) *sign.RequestSignature {
 	return sign.NewRequestSignature(method, url, body)
+}
+
+type secrets struct {
+	mutex    sync.RWMutex
+	deadline time.Time
+	all      map[string]*rsa.PublicKey
+}
+
+func (s *secrets) isUpgrade() bool {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	if s.deadline.Before(time.Now()) {
+		return true
+	}
+
+	return len(s.all) == 0
+}
+
+func (s *secrets) add(key string, val *rsa.PublicKey, d time.Duration) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.all[key] = val
+	s.deadline = time.Now().Add(d)
+}
+
+func (s *secrets) get(key string) *rsa.PublicKey {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	val, _ := s.all[key]
+	return val
+}
+
+func (s *secrets) clear() {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.all = make(map[string]*rsa.PublicKey)
+	s.deadline = time.Now()
 }
