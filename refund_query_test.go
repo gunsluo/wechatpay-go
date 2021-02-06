@@ -2,7 +2,10 @@ package wechatpay
 
 import (
 	"context"
+	"io/ioutil"
+	"net/http"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -71,10 +74,28 @@ func TestRefundQueryRequest_Do(t *testing.T) {
 			pass: true,
 		},
 		{
-			req: &RefundQueryRequest{},
-			resp: nil,
-			transport: nil,
+			req: &RefundQueryRequest{
+				OutRefundNo: "1217752501201407033233368018",
+			},
+			resp: &RefundQueryResponse{},
+			transport: &mockTransport{
+				RoundTripFn: func(req *http.Request) (*http.Response, error) {
+					var resp = &http.Response{
+						StatusCode: http.StatusOK,
+					}
+
+					resp.Header = http.Header{}
+					resp.Body = ioutil.NopCloser(strings.NewReader("{}"))
+					return resp, nil
+				},
+			},
 			pass: false,
+		},
+		{
+			req:       &RefundQueryRequest{},
+			resp:      nil,
+			transport: nil,
+			pass:      false,
 		},
 	}
 

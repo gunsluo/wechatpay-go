@@ -291,6 +291,24 @@ func TestDoForClient(t *testing.T) {
 		pass   bool
 	}{
 		{
+			&PayRequest{},
+			http.MethodPost,
+			"https://api.mch.weixin.qq.com/v3/pay/transactions/id/4200000914202101195554393855",
+			true,
+		},
+		{
+			nil,
+			http.MethodGet,
+			"https://api.mch.weixin.qq.com/v3/certificates",
+			true,
+		},
+		{
+			(*PayRequest)(nil),
+			http.MethodGet,
+			"https://api.mch.weixin.qq.com/v3/certificates",
+			true,
+		},
+		{
 			&CertificatesRequest{},
 			http.MethodGet,
 			"https://api.mch.weixin.qq.com/v3/certificates",
