@@ -36,6 +36,7 @@ type Client interface {
 	Config() *Config
 	Do(context.Context, string, string, ...interface{}) *Result
 	VerifySignature(context.Context, *Result) error
+	Download(ctx context.Context, u *FileUrl) ([]byte, error)
 }
 
 type client struct {
@@ -310,6 +311,26 @@ func (c *client) VerifySignature(ctx context.Context, result *Result) error {
 	}
 
 	return sign.VerifySignature(publicKey, respSign, result.Signature)
+}
+
+// FileUrl is url of the file, it is used download file.
+type FileUrl struct {
+	HashType    string `json:"hash_type"`
+	HashValue   string `json:"hash_value"`
+	DownloadUrl string `json:"download_url"`
+}
+
+// Download download file from wechatpay
+func (c *client) Download(ctx context.Context, u *FileUrl) ([]byte, error) {
+	reqSign := c.genRequestSignature(http.MethodGet, u.DownloadUrl, nil)
+	result := c.do(ctx, reqSign)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+
+	// there is no signature
+
+	return result.Body, nil
 }
 
 type ctxOnceDlCert struct{}
