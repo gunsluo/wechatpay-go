@@ -291,6 +291,24 @@ func TestDoForClient(t *testing.T) {
 		pass   bool
 	}{
 		{
+			&PayRequest{},
+			http.MethodPost,
+			"https://api.mch.weixin.qq.com/v3/pay/transactions/id/4200000914202101195554393855",
+			true,
+		},
+		{
+			nil,
+			http.MethodGet,
+			"https://api.mch.weixin.qq.com/v3/certificates",
+			true,
+		},
+		{
+			(*PayRequest)(nil),
+			http.MethodGet,
+			"https://api.mch.weixin.qq.com/v3/certificates",
+			true,
+		},
+		{
 			&CertificatesRequest{},
 			http.MethodGet,
 			"https://api.mch.weixin.qq.com/v3/certificates",
@@ -998,6 +1016,31 @@ func mockData(req *http.Request, privateKey *rsa.PrivateKey) (*http.Response, er
 		resp.Header = http.Header{}
 		resp.StatusCode = 204
 		mockBody := ``
+		// mock certificates signature
+		mockResp := &sign.ResponseSignature{
+			Body:      []byte(mockBody),
+			Timestamp: mockTimestamp,
+			Nonce:     mockNonce,
+		}
+		plain, err := mockResp.Marshal()
+		if err != nil {
+			return nil, err
+		}
+
+		signature, err := sign.SignatureSHA256WithRSA(privateKey, plain)
+		if err != nil {
+			return nil, err
+		}
+		resp.Header.Set("Wechatpay-Nonce", mockNonce)
+		resp.Header.Set("Wechatpay-Signature", signature)
+		resp.Header.Set("Wechatpay-Timestamp", strconv.FormatInt(mockTimestamp, 10))
+		resp.Header.Set("Wechatpay-Serial", mockSerialNo)
+		resp.Body = ioutil.NopCloser(strings.NewReader(mockBody))
+	case "/v3/refund/domestic/refunds/1217752501201407033233368018":
+		mockBody := `{"refund_id":"50000000382019052709732678859","out_refund_no":"1217752501201407033233368018","transaction_id":"1217752501201407033233368018","out_trade_no":"1217752501201407033233368018","channel":"ORIGINAL","user_received_account":"招商银行信用卡0403","success_time":"2020-12-01T16:18:12+08:00","create_time":"2020-12-01T16:18:12+08:00","status":"SUCCESS","funds_account":"UNSETTLED","amount":{"total":100,"refund":100,"payer_total":90,"payer_refund":90,"settlement_refund":100,"settlement_total":100,"discount_refund":10,"currency":"CNY"},"promotion_detail":[{"promotion_id":"109519","scope":"SINGLE","type":"DISCOUNT","amount":5,"refund_amount":100,"goods_detail":[{"merchant_goods_id":"1217752501201407033233368018","wechatpay_goods_id":"1001","goods_name":"iPhone6s 16G","unit_price":528800,"refund_amount":528800,"refund_quantity":1}]}]}`
+
+		resp.Header = http.Header{}
+		resp.StatusCode = 200
 		// mock certificates signature
 		mockResp := &sign.ResponseSignature{
 			Body:      []byte(mockBody),
