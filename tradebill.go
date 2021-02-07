@@ -571,11 +571,11 @@ func UnmarshalSuccessTradeBill(values []string) (*SuccessTradeBill, error) {
 }
 
 func removeDot(s string) string {
-	if s == "" {
-		return s
+	if strings.HasPrefix(s, "`") {
+		return s[1:]
 	}
 
-	return s[1:]
+	return s
 }
 
 func atoi(s string) (int, error) {
