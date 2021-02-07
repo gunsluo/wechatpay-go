@@ -26,11 +26,9 @@ When developing, you can use the `Makefile` for doing the following operations:
 | `certificate`      | obtain the platform cert and decrypt it to public key            |   :heavy_check_mark:   |
 | `tradebill`        | obtain the download url of trade bill                            |   :heavy_check_mark:   |
 | `fundflowbill`     | obtain the download url of trade bill                            |   :heavy_check_mark:   |
-| `refund`           | Merchant send the refund transaction                             |:heavy_multiplication_x:|
-| `refundquery`      | Merchant query payment transactions                              |:heavy_multiplication_x:|
-| `refundnotify`     | WeChat Pay notifies the merchant of the refund status            |:heavy_multiplication_x:|
-
-Note: *Endpoints about refund still uses v2 version, will update once wechat-pay upgrade*
+| `refund`           | Merchant send the refund transaction                             |   :heavy_check_mark:   |
+| `refundquery`      | Merchant query payment transactions                              |   :heavy_check_mark:   |
+| `refundnotify`     | WeChat Pay notifies the merchant of the refund status            |   :heavy_multiplication_x:|
 
 
 ## Getting Started
