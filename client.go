@@ -23,7 +23,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"strconv"
 	"sync"
 	"time"
@@ -122,9 +121,7 @@ func (c *client) Signature(reqSign *sign.RequestSignature) (string, error) {
 func (c *client) Do(ctx context.Context, method, url string, req ...interface{}) *Result {
 	// 1. serialize the request
 	var reqBuffer []byte
-	// now we only use method condition to solve this.
-	if len(req) > 0 && method != http.MethodGet &&
-		req[0] != nil && !reflect.ValueOf(req[0]).IsNil() {
+	if len(req) > 0 && method != http.MethodGet && req[0] != nil {
 		buffer, err := json.Marshal(req[0])
 		if err != nil {
 			return &Result{Err: err}

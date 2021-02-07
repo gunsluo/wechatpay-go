@@ -66,7 +66,7 @@ func (r *RefundQueryRequest) Do(ctx context.Context, c Client) (*RefundQueryResp
 	}
 
 	resp := &RefundQueryResponse{}
-	if err := c.Do(ctx, http.MethodGet, url, r).Scan(resp); err != nil {
+	if err := c.Do(ctx, http.MethodGet, url, nil).Scan(resp); err != nil {
 		return nil, err
 	}
 
