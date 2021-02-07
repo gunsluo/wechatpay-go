@@ -15,8 +15,10 @@
 package wechatpay
 
 import (
+	"bytes"
 	"context"
 	"crypto/rsa"
+	"io"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -744,6 +746,64 @@ func TestOnceDownloadCertificates(t *testing.T) {
 	}
 }
 
+func TestDownloadForClient(t *testing.T) {
+	client, err := mockNewClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if client == nil {
+		t.Fatal("client is nil")
+	}
+
+	cases := []struct {
+		f      *FileUrl
+		pass   bool
+		expect string
+	}{
+		{
+			f: &FileUrl{
+				HashType:    "SHA1",
+				HashValue:   "dcd7ceb3d382a1181798368bb15d8437de46c00f",
+				DownloadUrl: "https://api.mch.weixin.qq.com/v3/billdownload/file?token=g44bIUH1GyQtE7ZmeTAPQx5b69qABpYuC_oZq6Aalf-gQP-lJ_FHRMLnyj2O8ujG",
+			},
+			pass: true,
+			expect: "交易时间,公众账号ID,商户号,特约商户号,设备号,微信订单号,商户订单号,用户标识,交易类型,交易状态,付款银行,货币种类,应结订单金额,代金券金额,微信退款单号,商户退款单号,退款金额,充值券退款金额,退款类型,退款状态,商品名称,商户数据包,手续费,费率,订单金额,申请退款金额,费率备注\n" +
+				"`2021-01-28 17:07:11,`wx81be3101902f7cb2,`1601959334,`0,`,`4200000925202101284997714292,`S20210128170702357723,`ofyak5qR_1wYsC99CsWA6R9MJazA,`NATIVE,`SUCCESS,`OTHERS,`CNY,`0.01,`0.00,`0,`0,`0.00,`0.00,`,`,`for testing,`cipher code,`0.00000,`1.00%,`0.01,`0.00,`\n" +
+				"`2021-01-28 15:35:18,`wx81be3101902f7cb2,`1601959334,`0,`,`4200000910202101282955148400,`S20210128153505214586,`ofyak5qR_1wYsC99CsWA6R9MJazA,`NATIVE,`SUCCESS,`OTHERS,`CNY,`0.01,`0.00,`0,`0,`0.00,`0.00,`,`,`for testing,`cipher code,`0.00000,`1.00%,`0.01,`0.00,`\n" +
+				"`2021-01-28 16:59:46,`wx81be3101902f7cb2,`1601959334,`0,`,`4200000926202101281412639609,`S20210128165824499930,`ofyak5qR_1wYsC99CsWA6R9MJazA,`NATIVE,`SUCCESS,`OTHERS,`CNY,`0.01,`0.00,`0,`0,`0.00,`0.00,`,`,`for testing,`cipher code,`0.00000,`1.00%,`0.01,`0.00,`\n" +
+				"总交易单数,应结订单总金额,退款总金额,充值券退款总金额,手续费总金额,订单总金额,申请退款总金额\n" +
+				"`3,`0.03,`0.00,`0.00,`0.00000,`0.03,`0.00\n",
+		},
+		{
+			f: &FileUrl{
+				HashType:    "SHA1",
+				HashValue:   "dcd7ceb3d382a1181798368bb15d8437de46c00f",
+				DownloadUrl: "https:\n//api.mch.weixin.qq.com/v3/billdownload/file?token=g44bIUH1GyQtE7ZmeTAPQx5b69qABpYuC_oZq6Aalf-gQP-lJ_FHRMLnyj2O8ujG",
+			},
+			pass: false,
+		},
+	}
+
+	ctx := context.Background()
+	for _, c := range cases {
+		data, err := client.Download(ctx, c.f)
+		pass := err == nil
+		if pass != c.pass {
+			t.Fatalf("expect %v, got %v, err %v", c.pass, pass, err)
+		}
+
+		if err != nil {
+			continue
+		}
+
+		actual := string(data)
+		if c.expect != actual {
+			t.Fatalf("expect %v, got %v", c.expect, actual)
+		}
+	}
+}
+
 func TestGenRequestSignature(t *testing.T) {
 	cases := []struct {
 		method string
@@ -1061,7 +1121,76 @@ func mockData(req *http.Request, privateKey *rsa.PrivateKey) (*http.Response, er
 		resp.Header.Set("Wechatpay-Timestamp", strconv.FormatInt(mockTimestamp, 10))
 		resp.Header.Set("Wechatpay-Serial", mockSerialNo)
 		resp.Body = ioutil.NopCloser(strings.NewReader(mockBody))
+	case "/v3/billdownload/file":
+		//fmt.Println("--->", req.URL)
+		vs := req.URL.Query()
+		billType := vs.Get("bill_type")
+		tarType := vs.Get("tar_type")
 
+		var reader io.Reader
+		switch billType {
+		case "REFUND":
+		case "SUCCESS":
+		case "ALL":
+			fallthrough
+		default:
+			if tarType == "GZIP" {
+				mockBody := []byte{31, 139, 8, 0, 0, 0, 0, 0, 0, 255, 212, 84, 65, 79, 219, 48, 24, 189, 243, 43, 184, 236, 246, 129, 108, 39, 78, 226, 220, 80, 135, 52, 38, 141, 73, 148, 109, 226, 52, 3, 43, 27, 154, 52, 54, 64, 98, 219, 41, 28, 74, 96, 208, 49, 84, 162, 114, 217, 52, 88, 69, 57, 116, 165, 136, 170, 165, 13, 234, 254, 76, 237, 36, 255, 98, 74, 210, 54, 13, 55, 110, 91, 43, 89, 126, 159, 191, 60, 191, 239, 41, 47, 189, 78, 89, 158, 20, 101, 169, 25, 148, 26, 32, 242, 213, 222, 109, 201, 111, 156, 139, 195, 214, 204, 67, 16, 206, 142, 220, 109, 137, 195, 22, 120, 123, 109, 175, 115, 158, 96, 191, 214, 21, 101, 59, 220, 137, 110, 173, 247, 231, 212, 175, 157, 137, 130, 19, 225, 168, 39, 193, 222, 241, 133, 220, 109, 201, 159, 182, 127, 185, 3, 241, 101, 222, 149, 43, 126, 236, 15, 192, 151, 166, 180, 182, 161, 231, 158, 200, 106, 55, 40, 54, 253, 211, 3, 240, 27, 21, 113, 179, 237, 85, 10, 222, 149, 11, 162, 115, 236, 185, 197, 152, 48, 176, 143, 130, 179, 239, 208, 115, 127, 5, 246, 145, 216, 189, 233, 227, 88, 67, 96, 89, 178, 218, 77, 201, 72, 149, 98, 48, 120, 36, 159, 23, 214, 109, 72, 49, 90, 141, 65, 95, 95, 31, 196, 250, 132, 179, 35, 138, 219, 226, 91, 193, 171, 212, 251, 228, 210, 169, 203, 66, 77, 28, 228, 65, 238, 237, 123, 238, 111, 191, 209, 6, 191, 209, 246, 190, 218, 144, 82, 235, 29, 95, 251, 151, 173, 212, 61, 113, 155, 40, 219, 242, 250, 98, 140, 19, 68, 240, 4, 194, 19, 196, 24, 199, 186, 137, 116, 19, 99, 224, 91, 31, 13, 188, 148, 83, 48, 194, 12, 145, 21, 125, 121, 137, 0, 199, 26, 194, 140, 50, 69, 81, 129, 35, 224, 192, 85, 130, 194, 31, 35, 52, 228, 64, 152, 24, 42, 99, 186, 142, 85, 194, 8, 240, 236, 160, 136, 117, 164, 35, 162, 80, 93, 39, 10, 240, 181, 149, 79, 139, 111, 233, 135, 185, 151, 120, 107, 97, 35, 195, 88, 102, 227, 197, 148, 54, 199, 158, 60, 94, 252, 60, 5, 124, 118, 106, 126, 230, 249, 52, 240, 236, 179, 76, 102, 58, 155, 5, 254, 116, 254, 209, 244, 92, 22, 120, 102, 118, 1, 56, 154, 68, 56, 90, 81, 164, 0, 13, 247, 209, 26, 254, 87, 214, 214, 199, 55, 115, 27, 155, 171, 239, 94, 3, 95, 94, 125, 255, 38, 183, 62, 190, 188, 246, 42, 23, 247, 160, 176, 13, 79, 34, 244, 32, 205, 149, 54, 129, 154, 10, 53, 177, 113, 79, 19, 48, 26, 204, 75, 24, 165, 88, 53, 212, 144, 57, 49, 129, 42, 20, 81, 130, 85, 106, 104, 255, 131, 9, 154, 73, 153, 169, 106, 247, 125, 19, 180, 225, 188, 42, 38, 154, 194, 52, 196, 70, 77, 208, 168, 65, 84, 149, 49, 166, 160, 127, 212, 4, 105, 185, 241, 151, 65, 20, 28, 233, 212, 83, 249, 151, 150, 155, 74, 106, 130, 239, 228, 57, 57, 24, 102, 51, 41, 221, 229, 26, 13, 232, 176, 58, 198, 149, 72, 146, 146, 30, 108, 40, 61, 57, 26, 251, 27, 0, 0, 255, 255, 36, 43, 30, 24, 67, 5, 0, 0}
+				reader = bytes.NewReader(mockBody)
+			} else {
+				mockBody := "交易时间,公众账号ID,商户号,特约商户号,设备号,微信订单号,商户订单号,用户标识,交易类型,交易状态,付款银行,货币种类,应结订单金额,代金券金额,微信退款单号,商户退款单号,退款金额,充值券退款金额,退款类型,退款状态,商品名称,商户数据包,手续费,费率,订单金额,申请退款金额,费率备注\n" +
+					"`2021-01-28 17:07:11,`wx81be3101902f7cb2,`1601959334,`0,`,`4200000925202101284997714292,`S20210128170702357723,`ofyak5qR_1wYsC99CsWA6R9MJazA,`NATIVE,`SUCCESS,`OTHERS,`CNY,`0.01,`0.00,`0,`0,`0.00,`0.00,`,`,`for testing,`cipher code,`0.00000,`1.00%,`0.01,`0.00,`\n" +
+					"`2021-01-28 15:35:18,`wx81be3101902f7cb2,`1601959334,`0,`,`4200000910202101282955148400,`S20210128153505214586,`ofyak5qR_1wYsC99CsWA6R9MJazA,`NATIVE,`SUCCESS,`OTHERS,`CNY,`0.01,`0.00,`0,`0,`0.00,`0.00,`,`,`for testing,`cipher code,`0.00000,`1.00%,`0.01,`0.00,`\n" +
+					"`2021-01-28 16:59:46,`wx81be3101902f7cb2,`1601959334,`0,`,`4200000926202101281412639609,`S20210128165824499930,`ofyak5qR_1wYsC99CsWA6R9MJazA,`NATIVE,`SUCCESS,`OTHERS,`CNY,`0.01,`0.00,`0,`0,`0.00,`0.00,`,`,`for testing,`cipher code,`0.00000,`1.00%,`0.01,`0.00,`\n" +
+					"总交易单数,应结订单总金额,退款总金额,充值券退款总金额,手续费总金额,订单总金额,申请退款总金额\n" +
+					"`3,`0.03,`0.00,`0.00,`0.00000,`0.03,`0.00\n"
+				reader = strings.NewReader(mockBody)
+			}
+		}
+
+		resp.Body = ioutil.NopCloser(reader)
+	case "/v3/bill/tradebill":
+		vs := req.URL.Query()
+		billType := vs.Get("bill_type")
+
+		fileUrl := "https://api.mch.weixin.qq.com/v3/billdownload/file?token=g44bIUH1GyQtE7ZmeTAPQx5b69qABpYuC_oZq6Aalf-gQP-lJ_FHRMLnyj2O8ujG"
+		switch billType {
+		case "REFUND":
+			fileUrl += "&bill_type=REFUND"
+		case "SUCCESS":
+			fileUrl += "&bill_type=SUCCESS"
+		case "ALL":
+			fallthrough
+		default:
+			fileUrl += "&bill_type=ALL"
+		}
+
+		fileUrl += "&tar_type=" + vs.Get("tar_type")
+
+		mockBody := `{"hash_type":"SHA1","hash_value":"dcd7ceb3d382a1181798368bb15d8437de46c00f","download_url":"` + fileUrl + `"}`
+
+		resp.Header = http.Header{}
+		resp.StatusCode = 200
+		// mock certificates signature
+		mockResp := &sign.ResponseSignature{
+			Body:      []byte(mockBody),
+			Timestamp: mockTimestamp,
+			Nonce:     mockNonce,
+		}
+		plain, err := mockResp.Marshal()
+		if err != nil {
+			return nil, err
+		}
+
+		signature, err := sign.SignatureSHA256WithRSA(privateKey, plain)
+		if err != nil {
+			return nil, err
+		}
+		resp.Header.Set("Wechatpay-Nonce", mockNonce)
+		resp.Header.Set("Wechatpay-Signature", signature)
+		resp.Header.Set("Wechatpay-Timestamp", strconv.FormatInt(mockTimestamp, 10))
+		resp.Header.Set("Wechatpay-Serial", mockSerialNo)
+		resp.Body = ioutil.NopCloser(strings.NewReader(mockBody))
 	case "/v3/invalidresp":
 		resp.StatusCode = http.StatusInternalServerError
 		resp.Body = ioutil.NopCloser(strings.NewReader(`{"code":"ERROR_NAME","message":"ERROR_DESCRIPTION"}`))

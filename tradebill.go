@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -37,8 +36,8 @@ type TradeBillRequest struct {
 	TarType  TarType  `json:"-"`
 }
 
-// TradeBillRespone is the response for trade bill
-type TradeBillRespone struct {
+// TradeBillResponse is the response for trade bill
+type TradeBillResponse struct {
 	Summary TradeBillSummary
 	Refund  []*RefundTradeBill
 	All     []*AllTradeBill
@@ -81,11 +80,11 @@ func (r *TradeBillRequest) Download(ctx context.Context, c Client) ([]byte, erro
 
 		var uncompressed bytes.Buffer
 		if _, err := io.Copy(&uncompressed, zr); err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 
 		if err := zr.Close(); err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 
 		data = uncompressed.Bytes()
@@ -95,13 +94,13 @@ func (r *TradeBillRequest) Download(ctx context.Context, c Client) ([]byte, erro
 }
 
 // UnmarshalDownload download and unmarshal the data of trade bill
-func (r *TradeBillRequest) UnmarshalDownload(ctx context.Context, c Client) (*TradeBillRespone, error) {
+func (r *TradeBillRequest) UnmarshalDownload(ctx context.Context, c Client) (*TradeBillResponse, error) {
 	data, err := r.Download(ctx, c)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := UnmarshalTradeBillRespone(r.BillType, data)
+	resp, err := UnmarshalTradeBillResponse(r.BillType, data)
 	if err != nil {
 		return nil, err
 	}
@@ -134,14 +133,14 @@ func (r *TradeBillRequest) url(domain string) string {
 	return domain + "/v3/bill/tradebill?" + v.Encode()
 }
 
-// UnmarshalTradeBillRespone parses the bill data
+// UnmarshalTradeBillResponse parses the bill data
 // and stores the result in this response.
-func UnmarshalTradeBillRespone(billType BillType, data []byte) (*TradeBillRespone, error) {
+func UnmarshalTradeBillResponse(billType BillType, data []byte) (*TradeBillResponse, error) {
 	if len(data) == 0 {
 		return nil, errors.New("invaild data length")
 	}
 
-	r := &TradeBillRespone{}
+	r := &TradeBillResponse{}
 	first := true
 	scanner := bufio.NewScanner(bytes.NewReader(data))
 	for i := 0; scanner.Scan(); i++ {
@@ -209,7 +208,8 @@ const (
 type TarType string
 
 const (
-	GZIP TarType = "GZIP"
+	DataStream TarType = ""
+	GZIP       TarType = "GZIP"
 )
 
 // TradeBillSummary is summary trade bill
@@ -291,33 +291,98 @@ type RefundTradeBill struct {
 	TradeState         string
 	BankType           string
 	Currency           string
-	SettlementTotalFee int
-	CouponAmount       int
+	SettlementTotalFee float64
+	CouponAmount       float64
 	RefundApplyTime    string
 	RefundSuccessTime  string
 	PayerRefundId      string
 	MerchantRefundId   string
-	RefundAmount       int
-	CouponRefundAmount int
+	RefundAmount       float64
+	CouponRefundAmount float64
 	RefundType         string
 	RefundStatus       string
 	GoodName           string
 	Attach             string
-	CommissionFee      int
-	Rate               int
-	Amount             int
-	RefundApplyAmount  int
+	CommissionFee      float64
+	Rate               string
+	Amount             float64
+	RefundApplyAmount  float64
 	RateComment        string
 }
 
 // UnmarshalRefundTradeBill parses the bill data
 // and stores the result in the bill .
 func UnmarshalRefundTradeBill(values []string) (*RefundTradeBill, error) {
-	if len(values) != 28 {
+	if len(values) != 29 {
 		return nil, errors.New("values length is invalid")
 	}
 
-	b := &RefundTradeBill{}
+	b := &RefundTradeBill{
+		TradeTime:         removeDot(values[0]),
+		AppId:             removeDot(values[1]),
+		MchId:             removeDot(values[2]),
+		SpecialMechId:     removeDot(values[3]),
+		DeviceId:          removeDot(values[4]),
+		TransactionId:     removeDot(values[5]),
+		OutTradeNo:        removeDot(values[6]),
+		OpenId:            removeDot(values[7]),
+		TardeType:         removeDot(values[8]),
+		TradeState:        removeDot(values[9]),
+		BankType:          removeDot(values[10]),
+		Currency:          removeDot(values[11]),
+		RefundApplyTime:   removeDot(values[14]),
+		RefundSuccessTime: removeDot(values[15]),
+		PayerRefundId:     removeDot(values[16]),
+		MerchantRefundId:  removeDot(values[17]),
+		RefundType:        removeDot(values[20]),
+		RefundStatus:      removeDot(values[21]),
+		GoodName:          removeDot(values[22]),
+		Attach:            removeDot(values[23]),
+		Rate:              removeDot(values[25]),
+		RateComment:       removeDot(values[28]),
+	}
+
+	if i, err := parseFloat(values[12]); err != nil {
+		return nil, err
+	} else {
+		b.SettlementTotalFee = i
+	}
+
+	if i, err := parseFloat(values[13]); err != nil {
+		return nil, err
+	} else {
+		b.CouponAmount = i
+	}
+
+	if i, err := parseFloat(values[18]); err != nil {
+		return nil, err
+	} else {
+		b.RefundAmount = i
+	}
+
+	if i, err := parseFloat(values[19]); err != nil {
+		return nil, err
+	} else {
+		b.CouponRefundAmount = i
+	}
+
+	if i, err := parseFloat(values[24]); err != nil {
+		return nil, err
+	} else {
+		b.CommissionFee = i
+	}
+
+	if i, err := parseFloat(values[26]); err != nil {
+		return nil, err
+	} else {
+		b.Amount = i
+	}
+
+	if i, err := parseFloat(values[27]); err != nil {
+		return nil, err
+	} else {
+		b.RefundApplyAmount = i
+	}
 
 	return b, nil
 }
@@ -442,24 +507,65 @@ type SuccessTradeBill struct {
 	TradeState         string
 	BankType           string
 	Currency           string
-	SettlementTotalFee int
-	CouponAmount       int
+	SettlementTotalFee float64
+	CouponAmount       float64
 	GoodName           string
 	Attach             string
-	CommissionFee      int
-	Rate               int
-	Amount             int
+	CommissionFee      float64
+	Rate               string
+	Amount             float64
 	RateComment        string
 }
 
 // UnmarshalSuccessTradeBill parses the bill data
 // and stores the result in the bill .
 func UnmarshalSuccessTradeBill(values []string) (*SuccessTradeBill, error) {
-	if len(values) != 19 {
+	if len(values) != 20 {
 		return nil, errors.New("values length is invalid")
 	}
 
-	b := &SuccessTradeBill{}
+	b := &SuccessTradeBill{
+		TradeTime:     removeDot(values[0]),
+		AppId:         removeDot(values[1]),
+		MchId:         removeDot(values[2]),
+		SpecialMechId: removeDot(values[3]),
+		DeviceId:      removeDot(values[4]),
+		TransactionId: removeDot(values[5]),
+		OutTradeNo:    removeDot(values[6]),
+		OpenId:        removeDot(values[7]),
+		TardeType:     removeDot(values[8]),
+		TradeState:    removeDot(values[9]),
+		BankType:      removeDot(values[10]),
+		Currency:      removeDot(values[11]),
+		GoodName:      removeDot(values[14]),
+		Attach:        removeDot(values[15]),
+		Rate:          removeDot(values[17]),
+		RateComment:   removeDot(values[19]),
+	}
+
+	if i, err := parseFloat(values[12]); err != nil {
+		return nil, err
+	} else {
+		b.SettlementTotalFee = i
+	}
+
+	if i, err := parseFloat(values[13]); err != nil {
+		return nil, err
+	} else {
+		b.CouponAmount = i
+	}
+
+	if i, err := parseFloat(values[16]); err != nil {
+		return nil, err
+	} else {
+		b.CommissionFee = i
+	}
+
+	if i, err := parseFloat(values[18]); err != nil {
+		return nil, err
+	} else {
+		b.Amount = i
+	}
 
 	return b, nil
 }

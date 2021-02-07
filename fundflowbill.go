@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -36,8 +35,8 @@ type FundFlowBillRequest struct {
 	TarType     TarType     `json:"-"`
 }
 
-// FundFlowBillRespone is the response for trade bill
-type FundFlowBillRespone struct {
+// FundFlowBillResponse is the response for trade bill
+type FundFlowBillResponse struct {
 	Summary FundFlowBillSummary
 	Bill    []*FundFlowBill
 }
@@ -101,11 +100,11 @@ func (r *FundFlowBillRequest) Download(ctx context.Context, c Client) ([]byte, e
 
 		var uncompressed bytes.Buffer
 		if _, err := io.Copy(&uncompressed, zr); err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 
 		if err := zr.Close(); err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 
 		data = uncompressed.Bytes()
@@ -115,13 +114,13 @@ func (r *FundFlowBillRequest) Download(ctx context.Context, c Client) ([]byte, e
 }
 
 // UnmarshalDownload download and unmarshal the data of trade bill
-func (r *FundFlowBillRequest) UnmarshalDownload(ctx context.Context, c Client) (*FundFlowBillRespone, error) {
+func (r *FundFlowBillRequest) UnmarshalDownload(ctx context.Context, c Client) (*FundFlowBillResponse, error) {
 	data, err := r.Download(ctx, c)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := UnmarshalFundFlowBillRespone(r.AccountType, data)
+	resp, err := UnmarshalFundFlowBillResponse(r.AccountType, data)
 	if err != nil {
 		return nil, err
 	}
@@ -154,14 +153,14 @@ func (r *FundFlowBillRequest) url(domain string) string {
 	return domain + "/v3/bill/fundflowbill?" + v.Encode()
 }
 
-// UnmarshalFundFlowBillRespone parses the bill data
+// UnmarshalFundFlowBillResponse parses the bill data
 // and stores the result in this response.
-func UnmarshalFundFlowBillRespone(accountType AccountType, data []byte) (*FundFlowBillRespone, error) {
+func UnmarshalFundFlowBillResponse(accountType AccountType, data []byte) (*FundFlowBillResponse, error) {
 	if len(data) == 0 {
 		return nil, errors.New("invaild data length")
 	}
 
-	r := &FundFlowBillRespone{}
+	r := &FundFlowBillResponse{}
 	first := true
 	scanner := bufio.NewScanner(bytes.NewReader(data))
 	for i := 0; scanner.Scan(); i++ {
