@@ -124,26 +124,6 @@ func TestParseForPayNotification(t *testing.T) {
 			&Result{
 				Timestamp: mockTimestamp,
 				Nonce:     mockNonce,
-				Signature: "",
-				SerialNo:  mockSerialNo,
-				Body:      []byte(`{"id":"b62e271c-3389-58a0-8146-4a704966e8f1","create_time":"2021-01-28T17:07:11+08:00","resource_type":"encrypt-resource","event_type":"TRANSACTION.SUCCESS","summary":"支付成功","resource":{"original_type":"transaction","algorithm":"AEAD_AES_256_GCM","ciphertext":"yuKJXXxnqVMulBUy5NoriSab/S9aen3wXNYLqGdvBfxsWmN9JAFAMXO3LgDFPqNeZMrkSmQyFa981IVxLvWHzwrzlBtJk+hOwnxTgDxc8SsGt39QkRBbfGR8rutMr3Goiq03ygWjMA6I+n6qhqQ/zS0/bMIB1dQoFZBSCKiLp8VHbGDLirh9MqYRa7MKJEYziPF2DmdtRHvXie4AWSxcV6hq8Ufao9FQooLOA2gD/9JA+L6BqquOPOnStExxH26cK7QgFFAf22GP7JKXnMH0LF3lJrK6ZMQ7iTXvVxv/q6j3SwUbyWVKmXdMJTqnXtU4H90DjRC6It4cOavr3Gz6xeVyv4S3i1qdAD8rAqgjjF1QWnUQtIm4/TdOw3ro0L73VI07H8c9O6VX/U0TcGMJJrAKMJ/yBZlD6owliffy/pzceEG/MV27euHDS5VW/m23tokNy2G1XJu1T3sUzEUsNil7vngBLYHGEGNw6brOYxwxXEUI2n0tSJOG8upiSGmN0fOnWbPoN9YqtuIhvY4xKOJpKwQrNJSm+ybNrugAwbLf/HMATxK6dGk9RQK8Nn9PHSRSPmTU5sci6zzFGAEHKQ==","associated_data":"transaction","nonce":"fG1l57vn9BCX"}}`),
-			},
-			false,
-		},
-		{
-			&Result{
-				Timestamp: mockTimestamp,
-				Nonce:     mockNonce,
-				Signature: "g0A/VGU569/iS8MtR2SRfFg0YOqSzKYipRTJebnm6bLsWgSwWL92KMoAwNrP8qMqf1LUKWWrb2o0XpmLt2DMV7MStrJNmcViV6yVKzVRuS2XE3kUiQNFnbIdvNRiLI0hLDGA9W6dH5YUF/yVPanRo3rBLID8mFxD1tz2XyVpVKsDu7EhUQmwCKpgZ0a+lPILxZfMjnVI7VL6AFuf/iCrb/xaoVzGCJ1hLcPe7QV89MqNp2M4IP1wbiBqJezC7vBF/t/Rtyn+kK+My/S7iB+XDrHHXn/6ldp7RXBcDmjVbnp551oS2s8jyBFN1z/K+BIg+gYmyN9vOGgRFWcV2NGpUQ==",
-				SerialNo:  mockSerialNo,
-				Body:      []byte(`{"id":"b62e271c-3389-58a0-8146-4a704966e8f1","create_time":"2021-01-28T17:07:11+08:00","resource_type":"encrypt-resource","event_type":"TRANSACTION.SUCCESS","summary":"支付成功","resource":{"original_type":"transaction","algorithm":"AEAD_AES_256_GCM","ciphertext":"yuKJXXxnqVMulBUy5NoriSab/S9aen3wXNYLqGdvBfxsWmN9JAFAMXO3LgDFPqNeZMrkSmQyFa981IVxLvWHzwrzlBtJk+hOwnxTgDxc8SsGt39QkRBbfGR8rutMr3Goiq03ygWjMA6I+n6qhqQ/zS0/bMIB1dQoFZBSCKiLp8VHbGDLirh9MqYRa7MKJEYziPF2DmdtRHvXie4AWSxcV6hq8Ufao9FQooLOA2gD/9JA+L6BqquOPOnStExxH26cK7QgFFAf22GP7JKXnMH0LF3lJrK6ZMQ7iTXvVxv/q6j3SwUbyWVKmXdMJTqnXtU4H90DjRC6It4cOavr3Gz6xeVyv4S3i1qdAD8rAqgjjF1QWnUQtIm4/TdOw3ro0L73VI07H8c9O6VX/U0TcGMJJrAKMJ/yBZlD6owliffy/pzceEG/MV27euHDS5VW/m23tokNy2G1XJu1T3sUzEUsNil7vngBLYHGEGNw6brOYxwxXEUI2n0tSJOG8upiSGmN0fOnWbPoN9YqtuIhvY4xKOJpKwQrNJSm+ybNrugAwbLf/HMATxK6dGk9RQK8Nn9PkHYuBnwDft8oxSDkqLO7KA==","associated_data":"transaction","nonce":"fG1l57vn9BCX"}}`),
-			},
-			false,
-		},
-		{
-			&Result{
-				Timestamp: mockTimestamp,
-				Nonce:     mockNonce,
 				Signature: "K/aIQbi+bDKKC0nFc9/M/nOe2M/nnBaHbYs3Gf7ZzjD6Cq/thfph+0+h+8gzRay91z+f2/ggSQ18+ZxkI/VBpDFWE4ZoPuwoHk4BDvU6gy39Xcb1dcKs3sfjVu3wTyTrWychJ9CwBE9mVjsHlsFFrrz3+Nk+rBwJZp1h1B94PPImxB//bcXKfcBl/TXzDGFyJcgcpiyMwFe9x6EGIhJh51AXVe17W/qUSZtR8YRSaeqHdMasgTBOPLq93QfAkwz7wmxzUYeIMdmYJMU+Arhbc3EdmAnGfSuR2M6Pl65Y867RwgvAegYX2j8B7Xor7B+F+BdPqjg0mkFuvmHESToZSA==",
 				SerialNo:  mockSerialNo,
 				Body:      []byte(`{"id":"b62e271c-3389-58a0-8146-4a704966e8f1","create_time":"2021-01-28T17:07:11+08:00","resource_type":"encrypt-resource","event_type":"TRANSACTION.SUCCESS","summary":"支付成功","resource":{"original_type":"transaction","algorithm":"AEAD_AES_256_GCM","ciphertext":"yriQVTmulDmba+GD/be3QUMtoDg=","associated_data":"transaction","nonce":"fG1l57vn9BCX"}}`),
@@ -163,8 +143,8 @@ func TestParseForPayNotification(t *testing.T) {
 	}
 }
 
-func TestPayNotificationAnswer(t *testing.T) {
-	answer := &PayNotificationAnswer{}
+func TestNotificationAnswer(t *testing.T) {
+	answer := &NotificationAnswer{}
 	buffer := answer.Bytes()
 	actual := string(buffer)
 	expect := `{"code":"","message":""}`
