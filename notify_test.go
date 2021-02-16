@@ -152,3 +152,123 @@ func TestNotificationAnswer(t *testing.T) {
 		t.Fatalf("expect %s, got %s", expect, actual)
 	}
 }
+
+func TestParseHttpRequestForRefundNotification(t *testing.T) {
+	client, err := mockNewClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if client == nil {
+		t.Fatal("client is nil")
+	}
+
+	cases := []struct {
+		newReq func() *http.Request
+		pass   bool
+	}{
+		{
+			func() *http.Request {
+				req := &http.Request{
+					Header: http.Header{},
+				}
+
+				signature := "fjUjJEN2e60uTygpCUNF+gNbm3dY8DJxyZyL1SSHkbRc4lqmYYyLzlot1PWUvzvYdbGF99SMvAGuigkXuxmgJjaFsQ05uZiK5vUhCpv6hEKEIxQxgYPp5n7wBOZX2VOaKWBQp7F3B/4R8ZZEQ9nPKbrDjUFFu+LFRqA1akmukO5MY1sxXFpxBTrqfesnNQSo7pqjigBufJnh3yjmpUNdXbmDhMIUuAWr0dDNmETeK94B4tFjqF7hGza8/WUzwXj4JTy4ZBz8irgyKX9VimILiEVPB6I3afXptSMvTMlUwBG4gpwLCSgscn+vGKQv2mNCHkPDecl9c3dMbiyTkYtR3A=="
+				mockBody := `{"id":"9971e868-2144-58dd-99ae-df4c76ccde42","create_time":"2021-02-01T15:13:13+08:00","resource_type":"encrypt-resource","event_type":"REFUND.SUCCESS","summary":"退款成功","resource":{"original_type":"refund","algorithm":"AEAD_AES_256_GCM","ciphertext":"i6LL5pzT9gNoZTx3EtUmdiLPz7cQRJXa6mO+2kZBsn6aU5Rjd/m0+3YLnMXFYT2AKUUr0Iel3iQQw2rN834d305VcR7BQHXaY7qJ2fc0lZSqkx3aszF6yNRQ3rlvHBsqlOjQwPYFydbA0Fu0TO3F3aqbvJfYJ541O/O/EZeYZX31e6nbvY3ZjGGhXnW/CqWYkUSu8v9K3Q/KGP94VVTw/dvqyoOKN9NhGH4YV/62My6HUA6Khf2BQsYhsSqPJ3RzeEZiB6cxwWposXNqtjrwUI+Y7IrlJjwRjg8i0SPyUaDkTEybtdBTFSNzVSt7F5W32qYksgHozjlEIqQ4G/OMZEP+XUelVWeoGXkPgEC6WYHDZixyPlfCLNRxkxkaBhgs2+PKYAVBYtag8Je1/88oQ7Ms+qcUjHTXTRJJgRsBXZLPT20dFDySOOI7iIOkd0V+B8s5/NvUGqiCr3q4kAZDEI9H83qqA0QZvfH5zDr/l5VCh0ko7L8DTibF1w5WcILrnxuJcA==","associated_data":"refund","nonce":"QOXEHLl2XppO"}}`
+
+				req.Header.Set("Wechatpay-Nonce", mockNonce)
+				req.Header.Set("Wechatpay-Signature", signature)
+				req.Header.Set("Wechatpay-Timestamp", strconv.FormatInt(mockTimestamp, 10))
+				req.Header.Set("Wechatpay-Serial", mockSerialNo)
+				req.Body = ioutil.NopCloser(strings.NewReader(mockBody))
+
+				return req
+			},
+			true,
+		},
+		{
+			func() *http.Request {
+				req := &http.Request{
+					Header: http.Header{},
+				}
+
+				mockBody := `{"id":"9971e868-2144-58dd-99ae-df4c76ccde42","create_time":"2021-02-01T15:13:13+08:00","resource_type":"encrypt-resource","event_type":"REFUND.SUCCESS","summary":"退款成功","resource":{"original_type":"refund","algorithm":"AEAD_AES_256_GCM","ciphertext":"i6LL5pzT9gNoZTx3EtUmdiLPz7cQRJXa6mO+2kZBsn6aU5Rjd/m0+3YLnMXFYT2AKUUr0Iel3iQQw2rN834d305VcR7BQHXaY7qJ2fc0lZSqkx3aszF6yNRQ3rlvHBsqlOjQwPYFydbA0Fu0TO3F3aqbvJfYJ541O/O/EZeYZX31e6nbvY3ZjGGhXnW/CqWYkUSu8v9K3Q/KGP94VVTw/dvqyoOKN9NhGH4YV/62My6HUA6Khf2BQsYhsSqPJ3RzeEZiB6cxwWposXNqtjrwUI+Y7IrlJjwRjg8i0SPyUaDkTEybtdBTFSNzVSt7F5W32qYksgHozjlEIqQ4G/OMZEP+XUelVWeoGXkPgEC6WYHDZixyPlfCLNRxkxkaBhgs2+PKYAVBYtag8Je1/88oQ7Ms+qcUjHTXTRJJgRsBXZLPT20dFDySOOI7iIOkd0V+B8s5/NvUGqiCr3q4kAZDEI9H83qqA0QZvfH5zDr/l5VCh0ko7L8DTibF1w5WcILrnxuJcA==","associated_data":"refund","nonce":"QOXEHLl2XppO"}}`
+
+				req.Header.Set("Wechatpay-Nonce", mockNonce)
+				req.Header.Set("Wechatpay-Timestamp", "xxx")
+				req.Header.Set("Wechatpay-Serial", mockSerialNo)
+				req.Body = ioutil.NopCloser(strings.NewReader(mockBody))
+
+				return req
+			},
+			false,
+		},
+	}
+
+	for _, c := range cases {
+		n := RefundNotification{}
+		req := c.newReq()
+		_, err := n.ParseHttpRequest(client, req)
+		pass := err == nil
+		if pass != c.pass {
+			t.Fatalf("expect %v, got %v, err %v", c.pass, pass, err)
+		}
+	}
+}
+
+func TestParseForRefundNotification(t *testing.T) {
+	client, err := mockNewClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if client == nil {
+		t.Fatal("client is nil")
+	}
+
+	cases := []struct {
+		result *Result
+		pass   bool
+	}{
+		{
+			&Result{
+				Timestamp: mockTimestamp,
+				Nonce:     mockNonce,
+				Signature: "fjUjJEN2e60uTygpCUNF+gNbm3dY8DJxyZyL1SSHkbRc4lqmYYyLzlot1PWUvzvYdbGF99SMvAGuigkXuxmgJjaFsQ05uZiK5vUhCpv6hEKEIxQxgYPp5n7wBOZX2VOaKWBQp7F3B/4R8ZZEQ9nPKbrDjUFFu+LFRqA1akmukO5MY1sxXFpxBTrqfesnNQSo7pqjigBufJnh3yjmpUNdXbmDhMIUuAWr0dDNmETeK94B4tFjqF7hGza8/WUzwXj4JTy4ZBz8irgyKX9VimILiEVPB6I3afXptSMvTMlUwBG4gpwLCSgscn+vGKQv2mNCHkPDecl9c3dMbiyTkYtR3A==",
+				SerialNo:  mockSerialNo,
+				Body:      []byte(`{"id":"9971e868-2144-58dd-99ae-df4c76ccde42","create_time":"2021-02-01T15:13:13+08:00","resource_type":"encrypt-resource","event_type":"REFUND.SUCCESS","summary":"退款成功","resource":{"original_type":"refund","algorithm":"AEAD_AES_256_GCM","ciphertext":"i6LL5pzT9gNoZTx3EtUmdiLPz7cQRJXa6mO+2kZBsn6aU5Rjd/m0+3YLnMXFYT2AKUUr0Iel3iQQw2rN834d305VcR7BQHXaY7qJ2fc0lZSqkx3aszF6yNRQ3rlvHBsqlOjQwPYFydbA0Fu0TO3F3aqbvJfYJ541O/O/EZeYZX31e6nbvY3ZjGGhXnW/CqWYkUSu8v9K3Q/KGP94VVTw/dvqyoOKN9NhGH4YV/62My6HUA6Khf2BQsYhsSqPJ3RzeEZiB6cxwWposXNqtjrwUI+Y7IrlJjwRjg8i0SPyUaDkTEybtdBTFSNzVSt7F5W32qYksgHozjlEIqQ4G/OMZEP+XUelVWeoGXkPgEC6WYHDZixyPlfCLNRxkxkaBhgs2+PKYAVBYtag8Je1/88oQ7Ms+qcUjHTXTRJJgRsBXZLPT20dFDySOOI7iIOkd0V+B8s5/NvUGqiCr3q4kAZDEI9H83qqA0QZvfH5zDr/l5VCh0ko7L8DTibF1w5WcILrnxuJcA==","associated_data":"refund","nonce":"QOXEHLl2XppO"}}`),
+			},
+			true,
+		},
+		{
+			&Result{
+				Timestamp: mockTimestamp,
+				Nonce:     mockNonce,
+				Signature: "fjUjJEN2e60uTygpCUNF+gNbm3dY8DJxyZyL1SSHkbRc4lqmYYyLzlot1PWUvzvYdbGF99SMvAGuigkXuxmgJjaFsQ05uZiK5vUhCpv6hEKEIxQxgYPp5n7wBOZX2VOaKWBQp7F3B/4R8ZZEQ9nPKbrDjUFFu+LFRqA1akmukO5MY1sxXFpxBTrqfesnNQSo7pqjigBufJnh3yjmpUNdXbmDhMIUuAWr0dDNmETeK94B4tFjqF7hGza8/WUzwXj4JTy4ZBz8irgyKX9VimILiEVPB6I3afXptSMvTMlUwBG4gpwLCSgscn+vGKQv2mNCHkPDecl9c3dMbiyTkYtR3A==",
+				SerialNo:  mockSerialNo,
+				Body:      []byte(`{`),
+			},
+			false,
+		},
+		{
+			&Result{
+				Timestamp: mockTimestamp,
+				Nonce:     mockNonce,
+				Signature: "fjUjJEN2e60uTygpCUNF+gNbm3dY8DJxyZyL1SSHkbRc4lqmYYyLzlot1PWUvzvYdbGF99SMvAGuigkXuxmgJjaFsQ05uZiK5vUhCpv6hEKEIxQxgYPp5n7wBOZX2VOaKWBQp7F3B/4R8ZZEQ9nPKbrDjUFFu+LFRqA1akmukO5MY1sxXFpxBTrqfesnNQSo7pqjigBufJnh3yjmpUNdXbmDhMIUuAWr0dDNmETeK94B4tFjqF7hGza8/WUzwXj4JTy4ZBz8irgyKX9VimILiEVPB6I3afXptSMvTMlUwBG4gpwLCSgscn+vGKQv2mNCHkPDecl9c3dMbiyTkYtR3A==",
+				SerialNo:  mockSerialNo,
+				Body:      []byte(`{"id":"9971e868-2144-58dd-99ae-df4c76ccde42","create_time":"2021-02-01T15:13:13+08:00","resource_type":"encrypt-resource","event_type":"REFUND.SUCCESS","summary":"退款成功","resource":{"original_type":"refund","algorithm":"AEAD_AES_256_GCM","ciphertext":"i6LL5pzT9gNoZTx3EtUmdiLPz7cQRJXa6mO","associated_data":"refund","nonce":"QOXEHLl2XppO"}}`),
+			},
+			false,
+		},
+	}
+
+	ctx := context.Background()
+	for _, c := range cases {
+		n := RefundNotification{}
+		_, err := n.Parse(ctx, client, c.result)
+		pass := err == nil
+		if pass != c.pass {
+			t.Fatalf("expect %v, got %v, err %v", c.pass, pass, err)
+		}
+	}
+}

@@ -20,10 +20,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 // PayNotification is a paying notification from wechatpay
-type PayNotification Notification
+type PayNotification struct {
+	Notification
+}
 
 // PayNotifyTransaction is the transaction after being decrypted
 type PayNotifyTransaction = QueryResponse
@@ -85,12 +88,7 @@ func (n *PayNotification) Parse(ctx context.Context, c Client, result *Result) (
 		return nil, err
 	}
 
-	n.Id = on.Id
-	n.CreateTime = on.CreateTime
-	n.EventType = on.EventType
-	n.ResourceType = on.ResourceType
-	n.Summary = on.Summary
-	n.Resource = on.Resource
+	n.Notification = *on
 
 	var trans PayNotifyTransaction
 	if err := json.Unmarshal(data, &trans); err != nil {
@@ -101,10 +99,30 @@ func (n *PayNotification) Parse(ctx context.Context, c Client, result *Result) (
 }
 
 // RefundNotification is a refund notification from wechatpay
-type RefundNotification Notification
+type RefundNotification struct {
+	Notification
+}
 
 // RefundNotifyTransaction is the transaction after being decrypted
 type RefundNotifyTransaction struct {
+	MchId               string    `json:"mchid"`
+	OutTradeNo          string    `json:"out_trade_no"`
+	TransactionId       string    `json:"transaction_id"`
+	OutRefundNo         string    `json:"out_refund_no"`
+	RefundId            string    `json:"refund_id"`
+	RefundStatus        string    `json:"refund_status"`
+	SuccessTime         time.Time `json:"success_time,omitempty"`
+	UserReceivedAccount string    `json:"user_received_account"`
+
+	Amount RefundAmountInNotify `json:"amount"`
+}
+
+// RefundAmountInNotify is total amount refund.
+type RefundAmountInNotify struct {
+	Total       int `json:"total"`
+	Refund      int `json:"refund"`
+	PayerTotal  int `json:"payer_total"`
+	PayerRefund int `json:"payer_refund"`
 }
 
 // ParseHttpRequest pasre the data that read from the http request.
@@ -146,13 +164,7 @@ func (n *RefundNotification) Parse(ctx context.Context, c Client, result *Result
 	if err != nil {
 		return nil, err
 	}
-
-	n.Id = on.Id
-	n.CreateTime = on.CreateTime
-	n.EventType = on.EventType
-	n.ResourceType = on.ResourceType
-	n.Summary = on.Summary
-	n.Resource = on.Resource
+	n.Notification = *on
 
 	var trans RefundNotifyTransaction
 	if err := json.Unmarshal(data, &trans); err != nil {

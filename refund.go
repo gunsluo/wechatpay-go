@@ -64,12 +64,12 @@ type RefundResponse struct {
 	Status              string    `json:"status"`
 	FundsAccount        string    `json:"funds_account,omitempty"`
 
-	Amount    RefundAmountDetail       `json:"amount"`
+	Amount    RefundAmountInQueryResp  `json:"amount"`
 	Promotion []*RefundPromotionDetail `json:"promotion_detail,omitempty"`
 }
 
-// RefundAmountDetail is total amount refund.
-type RefundAmountDetail struct {
+// RefundAmountInQueryResp is total amount refund.
+type RefundAmountInQueryResp struct {
 	Total            int    `json:"total"`
 	Refund           int    `json:"refund"`
 	PayerTotal       int    `json:"payer_total"`
