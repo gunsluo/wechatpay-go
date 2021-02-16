@@ -35,7 +35,7 @@ import (
 type Client interface {
 	Config() *Config
 	Do(context.Context, string, string, ...interface{}) *Result
-	VerifySignature(context.Context, *Result) error
+	ParseNotification(context.Context, *Result) (*Notification, []byte, error)
 	Download(ctx context.Context, u *FileUrl) ([]byte, error)
 }
 
@@ -312,6 +312,52 @@ func (c *client) VerifySignature(ctx context.Context, result *Result) error {
 	}
 
 	return sign.VerifySignature(publicKey, respSign, result.Signature)
+}
+
+// Notification is a notification from wechatpay
+type Notification struct {
+	Id           string `json:"id"`
+	CreateTime   string `json:"create_time"`
+	EventType    string `json:"event_type"`
+	ResourceType string `json:"resource_type"`
+	Summary      string `json:"summary"`
+
+	Resource NotificationResource `json:"resource"`
+}
+
+// NotificationResource is the information of encrypt data
+type NotificationResource struct {
+	Algorithm    string `json:"algorithm"`
+	CipherText   string `json:"ciphertext"`
+	Associated   string `json:"associated_data"`
+	OriginalType string `json:"original_type"`
+	Nonce        string `json:"nonce"`
+}
+
+// ParseNotification pasre the notification from wechatpay result.
+func (c *client) ParseNotification(ctx context.Context, result *Result) (*Notification, []byte, error) {
+	n := &Notification{}
+	if err := json.Unmarshal(result.Body, n); err != nil {
+		return nil, nil, err
+	}
+
+	// verify signature
+	if err := c.VerifySignature(ctx, result); err != nil {
+		return nil, nil, err
+	}
+
+	// using apiv3 secret decrypt data
+	apiv3Secret := []byte(c.Config().Apiv3Secret)
+	data, err := sign.DecryptByAes256Gcm(
+		apiv3Secret,
+		[]byte(n.Resource.Nonce),
+		[]byte(n.Resource.Associated),
+		n.Resource.CipherText)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return n, data, nil
 }
 
 // FileUrl is url of the file, it is used download file.

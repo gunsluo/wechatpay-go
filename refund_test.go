@@ -195,7 +195,7 @@ func TestRefundDo(t *testing.T) {
 				CreateTime:          dateFromString("2021-02-01T15:13:10+08:00"),
 				Status:              "PROCESSING",
 				FundsAccount:        "UNAVAILABLE",
-				Amount: RefundAmountDetail{
+				Amount: RefundAmountInQueryResp{
 					Total:            1,
 					Refund:           1,
 					PayerTotal:       1,

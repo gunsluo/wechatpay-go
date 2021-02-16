@@ -40,8 +40,8 @@ func TestDoForCert(t *testing.T) {
 		pass      bool
 	}{
 		{
-			&CertificatesRequest{},
-			&CertificatesResponse{
+			req: &CertificatesRequest{},
+			resp: &CertificatesResponse{
 				Certificates: []Certificate{
 					{
 						SerialNo:      mockSerialNo,
@@ -56,13 +56,12 @@ func TestDoForCert(t *testing.T) {
 					},
 				},
 			},
-			nil,
-			true,
+			pass: true,
 		},
 		{
-			&CertificatesRequest{},
-			&CertificatesResponse{},
-			&mockTransport{
+			req:  &CertificatesRequest{},
+			resp: &CertificatesResponse{},
+			transport: &mockTransport{
 				RoundTripFn: func(req *http.Request) (*http.Response, error) {
 					var resp = &http.Response{
 						StatusCode: http.StatusOK,
@@ -73,7 +72,7 @@ func TestDoForCert(t *testing.T) {
 					return resp, nil
 				},
 			},
-			false,
+			pass: false,
 		},
 	}
 

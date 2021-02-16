@@ -28,7 +28,7 @@ When developing, you can use the `Makefile` for doing the following operations:
 | `fundflowbill`     | obtain the download url of trade bill                            |   :heavy_check_mark:   |
 | `refund`           | Merchant send the refund transaction                             |   :heavy_check_mark:   |
 | `refundquery`      | Merchant query payment transactions                              |   :heavy_check_mark:   |
-| `refundnotify`     | WeChat Pay notifies the merchant of the refund status            |   :heavy_multiplication_x:|
+| `refundnotify`     | WeChat Pay notifies the merchant of the refund status            |   :heavy_check_mark:   |
 
 
 ## Getting Started

@@ -16,6 +16,7 @@ package wechatpay
 
 import (
 	"net/http"
+	"reflect"
 	"time"
 )
 
@@ -42,6 +43,9 @@ type Option func(o *options)
 // Transport set transport to http client
 func Transport(transport http.RoundTripper) Option {
 	return func(o *options) {
+		if transport == nil || reflect.ValueOf(transport).IsNil() {
+			return
+		}
 		o.transport = transport
 	}
 }
