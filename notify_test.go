@@ -254,9 +254,9 @@ func TestParseForRefundNotification(t *testing.T) {
 			&Result{
 				Timestamp: mockTimestamp,
 				Nonce:     mockNonce,
-				Signature: "fjUjJEN2e60uTygpCUNF+gNbm3dY8DJxyZyL1SSHkbRc4lqmYYyLzlot1PWUvzvYdbGF99SMvAGuigkXuxmgJjaFsQ05uZiK5vUhCpv6hEKEIxQxgYPp5n7wBOZX2VOaKWBQp7F3B/4R8ZZEQ9nPKbrDjUFFu+LFRqA1akmukO5MY1sxXFpxBTrqfesnNQSo7pqjigBufJnh3yjmpUNdXbmDhMIUuAWr0dDNmETeK94B4tFjqF7hGza8/WUzwXj4JTy4ZBz8irgyKX9VimILiEVPB6I3afXptSMvTMlUwBG4gpwLCSgscn+vGKQv2mNCHkPDecl9c3dMbiyTkYtR3A==",
+				Signature: "comFTl4/2gwcIPa9JbBxvNfxfOY7JkQtp7HleoCMw1z+C4VEiCjtwlFTtNJGCp76bQ0ego7Qw+Oxnssk+h90WyGCO2qL4PXE9PkD8D1B4jymITPLNjS8DE/ePL00WTr7Zi4V3xYKukBwVDPCynwZjyDQtK9fi0RBcCT1qcyi0fBO3mHR74qj3YuWZF9GZeMlzDT51tFRtFT8Y+niUrDNinfWYlGJ/JJbci2JP/FlN+A1ZLlppOiJhexxuMcIevlicQNeNt3yD16H8azRi0vr4Q+l0noBsd81ey6yxUZvhIx+RFgjUFChSwwkqZiamEc5bYmaxscIAtTjlmfbm2Vf6w==",
 				SerialNo:  mockSerialNo,
-				Body:      []byte(`{"id":"9971e868-2144-58dd-99ae-df4c76ccde42","create_time":"2021-02-01T15:13:13+08:00","resource_type":"encrypt-resource","event_type":"REFUND.SUCCESS","summary":"退款成功","resource":{"original_type":"refund","algorithm":"AEAD_AES_256_GCM","ciphertext":"i6LL5pzT9gNoZTx3EtUmdiLPz7cQRJXa6mO","associated_data":"refund","nonce":"QOXEHLl2XppO"}}`),
+				Body:      []byte(`{"id":"9971e868-2144-58dd-99ae-df4c76ccde42","create_time":"2021-02-01T15:13:13+08:00","resource_type":"encrypt-resource","event_type":"REFUND.SUCCESS","summary":"退款成功","resource":{"original_type":"refund","algorithm":"AEAD_AES_256_GCM","ciphertext":"i6LL5pzT9gNodJBjZuY19VeNSqXwDhn9gw==","associated_data":"refund","nonce":"QOXEHLl2XppO"}}`),
 			},
 			false,
 		},
