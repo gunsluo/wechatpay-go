@@ -131,7 +131,7 @@ There is [a full example](https://github.com/gunsluo/wechatpay-example) for wech
 
 #### Download
 
-download bill file, Method `Download` get the decrypted byte array and and `UnmarshalDownload` to get a struct data.
+download bill and unpack data. `Download` get the decrypted byte array, `UnmarshalDownload` get a struct data.
 ```
 req := wechatpay.TradeBillRequest{
     BillDate: billDate,
