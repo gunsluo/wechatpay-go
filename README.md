@@ -40,7 +40,7 @@ Prepare your wechatp pay information, it includes App Id/Mech Id/Apiv3 Secret/Se
 import "github.com/gunsluo/wechatpay-go/v3"
 ```
 
-2. *use this sdk*
+2. *use wechatpay-go package*
 ```Go
 // create a client of wechat pay
 client, err := wechatpay.NewClient(
@@ -64,7 +64,92 @@ if err != nil {
 codeUrl := resp.CodeUrl
 ```
 
+#### Config
+
+Click [Wechat Pay](https://pay.weixin.qq.com/) and apply your account and configuration.
+```
+wechatpay.Config{
+    AppId:       appId,
+    MchId:       mchId,
+    Apiv3Secret: apiv3Secret,
+    Cert: wechatpay.CertSuite{
+        SerialNo:       serialNo,
+        PrivateKeyPath: privateKeyPath,
+    },
+}
+```
+
+#### Payment
+
+Create a pay request and send it to wechat pay service.
+```
+req := &wechatpay.PayRequest{
+    Description: "for testing",
+    OutTradeNo:  tradeNo,
+    TimeExpire:  time.Now().Add(10 * time.Minute),
+    Attach:      "cipher code",
+    NotifyUrl:   notifyURL,
+    Amount: wechatpay.PayAmount{
+        Total:    int(amount * 100),
+        Currency: "CNY",
+    },
+    TradeType: wechatpay.Native,
+}
+
+resp, err := req.Do(r.Context(), payClient)
+if err != nil {
+    e := &wechatpay.Error{}
+    if errors.As(err, &e) {
+        fmt.Println("status", e.Status, "code:", e.Code, "message:", e.Message)
+    }
+    return
+}
+codeUrl := resp.CodeUrl
+// use this code url to generate qr code
+```
+
+#### Notify
+
+Receive the notification from wechat pay, use `ParseHttpRequest` or `Parse` to get notification information.
+```
+func notifyForPay(w http.ResponseWriter, r *http.Request) {
+    notification := &wechatpay.PayNotification{}
+    trans, err := notification.ParseHttpRequest(payClient, r)
+
+    ...
+}
+
+func notifyForRefund(w http.ResponseWriter, r *http.Request) {
+    notification := &wechatpay.RefundNotification{}
+    trans, err := notification.ParseHttpRequest(payClient, r)
+
+    ...
+}
+```
+
 There is [a full example](https://github.com/gunsluo/wechatpay-example) for wechatpay-go.
+
+#### Download
+
+download bill file, Method `Download` get the decrypted byte array and and `UnmarshalDownload` to get a struct data.
+```
+req := wechatpay.TradeBillRequest{
+    BillDate: billDate,
+    BillType: wechatpay.AllBill,
+    TarType:  wechatpay.GZIP,
+}
+
+ctx := context.Background()
+data, err := req.Download(ctx, payClient)
+//resp, err := req.UnmarshalDownload(ctx, payClient)
+```
+
+
+## TODO
+
+* Pay combine transactions
+* Close combine transactions
+* Query combine transactions
 
 ## Contributing
 

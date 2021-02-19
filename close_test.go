@@ -47,6 +47,13 @@ func TestCloseRequestDo(t *testing.T) {
 		},
 		{
 			&CloseRequest{
+				OutTradeNo: "fortest",
+			},
+			nil,
+			true,
+		},
+		{
+			&CloseRequest{
 				MchId:      client.config.MchId,
 				OutTradeNo: "fortest",
 			},

@@ -21,7 +21,8 @@ import (
 	"time"
 )
 
-// RefundRequest is request when apply refund
+// RefundRequest is request when apply refund, TransactionId
+// and OutTradeNo is required.
 type RefundRequest struct {
 	TransactionId string `json:"transaction_id"`
 	OutTradeNo    string `json:"out_trade_no"`
