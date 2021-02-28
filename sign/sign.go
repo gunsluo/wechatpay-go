@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package sign implements signature and verify for wechat pay. It
+// includes all encryption and decryption related implementations.
 package sign
 
 import (
@@ -97,13 +99,8 @@ func (r *ResponseSignature) Marshal() ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-// CipherSuite is a cipher suite for signature
-type CipherSuite struct {
-	PrivateKey string
-	SerialNo   string
-}
-
-// GenerateSignature generate signature information
+// GenerateSignature generate a signature string,
+// privateKey is an RSA key.
 func GenerateSignature(privateKey *rsa.PrivateKey, reqSign *RequestSignature, mchId, serialNo string) (string, error) {
 	reqSignature, err := reqSign.Marshal()
 	if err != nil {
@@ -131,6 +128,7 @@ func GenerateSignature(privateKey *rsa.PrivateKey, reqSign *RequestSignature, mc
 }
 
 // VerifySignature verify that the signature is passed.
+// privateKey is an RSA key.
 func VerifySignature(publicKey *rsa.PublicKey, respSign *ResponseSignature, signature string) error {
 	respSignature, err := respSign.Marshal()
 	if err != nil {

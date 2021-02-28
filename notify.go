@@ -23,12 +23,12 @@ import (
 	"time"
 )
 
-// PayNotification is a paying notification from wechatpay
+// PayNotification is a paying notification from wechatpay.
 type PayNotification struct {
 	Notification
 }
 
-// PayNotifyTransaction is the transaction after being decrypted
+// PayNotifyTransaction is the transaction after being decrypted.
 type PayNotifyTransaction = QueryResponse
 
 // NotificationAnswer is sent to wechat pay after
@@ -38,12 +38,12 @@ type NotificationAnswer struct {
 	Message string `json:"message"`
 }
 
-// String return a json string
+// String return a json string.
 func (a *NotificationAnswer) String() string {
 	return `{"code":"` + a.Code + `","message":"` + a.Message + `"}`
 }
 
-// Bytes return a json array bytes
+// Bytes return a json array bytes.
 func (a *NotificationAnswer) Bytes() []byte {
 	return []byte(a.String())
 }
@@ -81,7 +81,7 @@ func (n *PayNotification) ParseHttpRequest(c Client, req *http.Request) (*PayNot
 	return n.Parse(req.Context(), c, result)
 }
 
-// Parse pasre the data from result.
+// Parse pasre the data from result and return a transaction.
 func (n *PayNotification) Parse(ctx context.Context, c Client, result *Result) (*PayNotifyTransaction, error) {
 	on, data, err := c.ParseNotification(ctx, result)
 	if err != nil {
@@ -98,12 +98,12 @@ func (n *PayNotification) Parse(ctx context.Context, c Client, result *Result) (
 	return &trans, nil
 }
 
-// RefundNotification is a refund notification from wechatpay
+// RefundNotification is a refund notification from wechatpay.
 type RefundNotification struct {
 	Notification
 }
 
-// RefundNotifyTransaction is the transaction after being decrypted
+// RefundNotifyTransaction is the transaction after being decrypted.
 type RefundNotifyTransaction struct {
 	MchId               string    `json:"mchid"`
 	OutTradeNo          string    `json:"out_trade_no"`
@@ -126,7 +126,7 @@ type RefundAmountInNotify struct {
 }
 
 // ParseHttpRequest pasre the data that read from the http request.
-// return a transaction.
+// return a refund transaction.
 func (n *RefundNotification) ParseHttpRequest(c Client, req *http.Request) (*RefundNotifyTransaction, error) {
 	data, err := ioutil.ReadAll(req.Body)
 	if err != nil {
@@ -158,7 +158,7 @@ func (n *RefundNotification) ParseHttpRequest(c Client, req *http.Request) (*Ref
 	return n.Parse(req.Context(), c, result)
 }
 
-// Parse pasre the data from result.
+// Parse pasre the data from result and return a refund transcation.
 func (n *RefundNotification) Parse(ctx context.Context, c Client, result *Result) (*RefundNotifyTransaction, error) {
 	on, data, err := c.ParseNotification(ctx, result)
 	if err != nil {

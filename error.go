@@ -18,14 +18,14 @@ import (
 	"strconv"
 )
 
-// Error is more detail error
+// Error is more detail error of wechat pay.
 type Error struct {
 	Status  int    `json:"status"`
 	Code    string `json:"code"`
 	Message string `json:"message"`
 }
 
-// Error implement Error function for err
+// Error implement Error function for err.
 func (e *Error) Error() string {
 	if e == nil {
 		return "{}"

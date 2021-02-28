@@ -19,13 +19,13 @@ import (
 	"net/http"
 )
 
-// CloseRequest is the request for close transaction
+// CloseRequest is the request for close transaction.
 type CloseRequest struct {
 	MchId      string `json:"mchid"`
 	OutTradeNo string `json:"-"`
 }
 
-// Do send the request of close transaction
+// Do send the request of close transaction.
 func (r *CloseRequest) Do(ctx context.Context, c Client) error {
 	if r.MchId == "" {
 		r.MchId = c.Config().MchId

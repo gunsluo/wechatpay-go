@@ -65,9 +65,9 @@ func randomBytes(length int) (b []byte) {
 }
 
 // maskBytes are characters allowed in mask.
-var maskBytes = []byte(TxtMask)
+var maskBytes = []byte(txtMask)
 
 const (
-	//TxtMask mask chacters.
-	TxtMask = "ABCDEF0123456789"
+	//txtMask mask chacters.
+	txtMask = "ABCDEF0123456789"
 )

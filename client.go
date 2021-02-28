@@ -31,7 +31,7 @@ import (
 	"github.com/gunsluo/wechatpay-go/v3/sign"
 )
 
-// client is wechat pay client for api v3
+// client is wechat pay client for api v3.
 type Client interface {
 	Config() *Config
 	Do(context.Context, string, string, ...interface{}) *Result
@@ -48,6 +48,8 @@ type client struct {
 }
 
 // NewClient creates a new client with configuration from cfg.
+// Config includes App Id/Mech Id/Apiv3 Secret/Serial Number
+// and Private Key Cert.
 func NewClient(cfg Config, opts ...Option) (Client, error) {
 	return newClient(cfg, opts...)
 }
@@ -103,12 +105,12 @@ func newClient(cfg Config, opts ...Option) (*client, error) {
 	return c, nil
 }
 
-// Config return client config
+// Config return client config.
 func (c *client) Config() *Config {
 	return &c.config
 }
 
-// Signature signature a request and return signature string
+// Signature signature a request and return signature string.
 func (c *client) Signature(reqSign *sign.RequestSignature) (string, error) {
 	signature, err := sign.GenerateSignature(c.privateKey,
 		reqSign, c.config.MchId, c.config.Cert.SerialNo)
@@ -293,7 +295,7 @@ func upgradeCertWorkflow(ctx context.Context, c *client, reqSign *sign.RequestSi
 	return nil
 }
 
-// VerifySignature verify the signature from wechat pay's responses
+// VerifySignature verify the signature from wechat pay's responses.
 func (c *client) VerifySignature(ctx context.Context, result *Result) error {
 	// check and download certificates
 	if err := c.onceDownloadCertificates(ctx); err != nil {
@@ -314,7 +316,7 @@ func (c *client) VerifySignature(ctx context.Context, result *Result) error {
 	return sign.VerifySignature(publicKey, respSign, result.Signature)
 }
 
-// Notification is a notification from wechatpay
+// Notification is a notification from wechatpay.
 type Notification struct {
 	Id           string `json:"id"`
 	CreateTime   string `json:"create_time"`
@@ -325,7 +327,7 @@ type Notification struct {
 	Resource NotificationResource `json:"resource"`
 }
 
-// NotificationResource is the information of encrypt data
+// NotificationResource is the information of encrypt data.
 type NotificationResource struct {
 	Algorithm    string `json:"algorithm"`
 	CipherText   string `json:"ciphertext"`
@@ -367,7 +369,7 @@ type FileUrl struct {
 	DownloadUrl string `json:"download_url"`
 }
 
-// Download download file from wechatpay
+// Download download file from wechatpay.
 func (c *client) Download(ctx context.Context, u *FileUrl) ([]byte, error) {
 	reqSign := c.genRequestSignature(http.MethodGet, u.DownloadUrl, nil)
 	result := c.do(ctx, reqSign)

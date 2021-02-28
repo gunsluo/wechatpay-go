@@ -23,7 +23,7 @@ import (
 )
 
 // SignatureSHA256WithRSA calculates the signature of hashed
-// using SHA256 with RSA
+// using SHA256 with RSA.
 func SignatureSHA256WithRSA(privateKey *rsa.PrivateKey, plain []byte) (string, error) {
 	h := sha256.New()
 	h.Write(plain)
@@ -37,7 +37,7 @@ func SignatureSHA256WithRSA(privateKey *rsa.PrivateKey, plain []byte) (string, e
 }
 
 // VerifySHA256WithRSA verify that the signature is available
-// using SHA256 with RSA
+// using SHA256 with RSA.
 func VerifySHA256WithRSA(publicKey *rsa.PublicKey, signature string, plain []byte) error {
 	sig, err := base64.StdEncoding.DecodeString(signature)
 	if err != nil {

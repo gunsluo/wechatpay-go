@@ -30,7 +30,7 @@ type Config struct {
 	opts        options
 }
 
-// CertSuite is the suite for api cert
+// CertSuite is the suite for api cert.
 type CertSuite struct {
 	SerialNo       string
 	PrivateKeyTxt  string
@@ -40,7 +40,7 @@ type CertSuite struct {
 // Option is optional configuration for wechat pay.
 type Option func(o *options)
 
-// Transport set transport to http client
+// Transport set transport to http client.
 func Transport(transport http.RoundTripper) Option {
 	return func(o *options) {
 		if transport == nil || reflect.ValueOf(transport).IsNil() {
@@ -50,7 +50,7 @@ func Transport(transport http.RoundTripper) Option {
 	}
 }
 
-// Timeout set timeout for http client
+// Timeout set timeout for http client.
 func Timeout(timeout time.Duration) Option {
 	return func(o *options) {
 		o.timeout = timeout
@@ -65,6 +65,7 @@ func CertRefreshTime(refreshTime time.Duration) Option {
 	}
 }
 
+// Options return the options
 func (c *Config) Options() *options {
 	return &c.opts
 }
