@@ -28,20 +28,20 @@ import (
 	"time"
 )
 
-// FundFlowBillRequest is the request for trade bill
+// FundFlowBillRequest is the request for trade bill.
 type FundFlowBillRequest struct {
 	BillDate    string      `json:"-"`
 	AccountType AccountType `json:"-"`
 	TarType     TarType     `json:"-"`
 }
 
-// FundFlowBillResponse is the response for trade bill
+// FundFlowBillResponse is the response for trade bill.
 type FundFlowBillResponse struct {
 	Summary FundFlowBillSummary
 	Bill    []*FundFlowBill
 }
 
-// FundFlowBill is summary fundflow
+// FundFlowBill is summary fundflow.
 type FundFlowBillSummary struct {
 	TotalNumber          int
 	TotalNumberOfIncome  int
@@ -50,7 +50,7 @@ type FundFlowBillSummary struct {
 	OutcomeAomunt        float64
 }
 
-// FundFlowBill is data for fund flow
+// FundFlowBill is data for fund flow.
 type FundFlowBill struct {
 	AccountingTime      string
 	TransactionId       string
@@ -65,7 +65,7 @@ type FundFlowBill struct {
 	BusinessNumber      string
 }
 
-// Do send the request of close transaction
+// Do send the request of downloading fundflow bill.
 func (r *FundFlowBillRequest) Do(ctx context.Context, c Client) (*FileUrl, error) {
 	if err := r.validate(); err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (r *FundFlowBillRequest) Do(ctx context.Context, c Client) (*FileUrl, error
 	return fileUrl, nil
 }
 
-// Download download original the data of fundflow bill
+// Download download original the data of fundflow bill.
 func (r *FundFlowBillRequest) Download(ctx context.Context, c Client) ([]byte, error) {
 	fileUrl, err := r.Do(ctx, c)
 	if err != nil {
@@ -113,7 +113,7 @@ func (r *FundFlowBillRequest) Download(ctx context.Context, c Client) ([]byte, e
 	return data, nil
 }
 
-// UnmarshalDownload download and unmarshal the data of trade bill
+// UnmarshalDownload download and unmarshal the data of fundflow bill.
 func (r *FundFlowBillRequest) UnmarshalDownload(ctx context.Context, c Client) (*FundFlowBillResponse, error) {
 	data, err := r.Download(ctx, c)
 	if err != nil {
@@ -237,7 +237,7 @@ func UnmarshalFundFlowBillSummary(values []string) (*FundFlowBillSummary, error)
 }
 
 // UnmarshalFundFlowBill parses the bill data
-// and stores the result in the bill .
+// and stores the result in the bill.
 func UnmarshalFundFlowBill(values []string) (*FundFlowBill, error) {
 	if len(values) != 11 {
 		return nil, errors.New("values length is invalid")
@@ -270,7 +270,7 @@ func UnmarshalFundFlowBill(values []string) (*FundFlowBill, error) {
 	return b, nil
 }
 
-// AccountType is account type
+// AccountType is account type.
 type AccountType string
 
 const (

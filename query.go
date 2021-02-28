@@ -31,14 +31,14 @@ const (
 	TradeStateAccept     = "ACCEPT"
 )
 
-// QueryRequest is the request for query transaction
+// QueryRequest is the request for query transaction.
 type QueryRequest struct {
 	MchId         string `json:"-"`
 	OutTradeNo    string `json:"-"`
 	TransactionId string `json:"-"`
 }
 
-// QueryResponse is the response for query transaction
+// QueryResponse is the response for query transaction.
 type QueryResponse struct {
 	AppId          string    `json:"appid"`
 	MchId          string    `json:"mchid"`
@@ -57,12 +57,12 @@ type QueryResponse struct {
 	Promotion []*PromotionDetail    `json:"promotion_detail,omitempty"`
 }
 
-// IsSuccess check if the transactions pay success
+// IsSuccess check if the transactions pay success.
 func (q QueryResponse) IsSuccess() bool {
 	return q.TradeState == TradeStateSuccess
 }
 
-// Payer is the payer of the transaction
+// Payer is the payer of the transaction.
 type Payer struct {
 	OpenId string `json:"openid"`
 }
@@ -75,12 +75,12 @@ type TransactionAmount struct {
 	PayerCurrency string `json:"payer_currency,omitempty"`
 }
 
-// TransactionSceneInfo is the scene information about the transaction
+// TransactionSceneInfo is the scene information about the transaction.
 type TransactionSceneInfo struct {
 	DeviceId string `json:"device_id,omitempty"`
 }
 
-// PromotionDetail is the promotion information about the transaction
+// PromotionDetail is the promotion information about the transaction.
 type PromotionDetail struct {
 	CouponId            string `json:"coupon_id"`
 	Name                string `json:"name,omitempty"`
@@ -96,7 +96,7 @@ type PromotionDetail struct {
 	GoodsDetail []TransactionGoodDetail `json:"goods_detail,omitempty"`
 }
 
-// TransactionGoodDetail is the good information about the transaction
+// TransactionGoodDetail is the good information about the transaction.
 type TransactionGoodDetail struct {
 	GoodsId        string `json:"goods_id"`
 	Quantity       int    `json:"quantity"`
@@ -105,7 +105,7 @@ type TransactionGoodDetail struct {
 	GoodsRemark    string `json:"goods_remark,omitempty"`
 }
 
-// Do send the request of query transaction
+// Do send the request of query transaction.
 func (r *QueryRequest) Do(ctx context.Context, c Client) (*QueryResponse, error) {
 	if r.MchId == "" {
 		r.MchId = c.Config().MchId

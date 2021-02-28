@@ -12,6 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package wechatpay implements V3 endpoints for wechat pay. It is general
+// SDK and provides the featrues, such as pay/query/close/notify transaction,
+// refund/download bill.
+//
+// As a quick start:
+//	client, err := NewClient(Config{})
+//	// check error
+//
+// If you want to apply a pay request, use PayRequest
+//	// create a pay request
+//	req := &.PayRequest{
+//		AppId:       appId,
+//		MchId:       mchId,
+//		Description: "for testing",
+//		TradeType: .Native,
+//	}
+//
+//	resp, err := req.Do(r.Context(), client)
+//	if err != nil {
+//		// do something
+//	}
+//	codeUrl := resp.CodeUrl
 package wechatpay
 
 import (
@@ -29,14 +51,14 @@ type PayAmount struct {
 	Currency string `json:"currency,omitempty"`
 }
 
-// PayDetail is the promotion information about the transaction
+// PayDetail is the promotion information about the transaction.
 type PayDetail struct {
 	CostPrice   int          `json:"cost_price,omitempty"`
 	InvoiceId   string       `json:"invoice_id,omitempty"`
 	GoodsDetail []GoodDetail `json:"goods_detail,omitempty"`
 }
 
-// GoodDetail is the good information about the transaction
+// GoodDetail is the good information about the transaction.
 type GoodDetail struct {
 	MerchantGoodsId  string `json:"merchant_goods_id"`
 	WechatpayGoodsId string `json:"wechatpay_goods_id,omitempty"`
@@ -45,14 +67,14 @@ type GoodDetail struct {
 	UnitPrice        int    `json:"unit_price"`
 }
 
-// PaySceneInfo is the scene information about the transaction
+// PaySceneInfo is the scene information about the transaction.
 type PaySceneInfo struct {
 	PayerClientIp string     `json:"payer_client_ip"`
 	DeviceId      string     `json:"device_id,omitempty"`
 	StoreInfo     *StoreInfo `json:"store_info,omitempty"`
 }
 
-// StoreInfo  the store information about the transaction
+// StoreInfo  the store information about the transaction.
 type StoreInfo struct {
 	Id       string `json:"id"`
 	Name     string `json:"name,omitempty"`
@@ -60,7 +82,7 @@ type StoreInfo struct {
 	Address  string `json:"address,omitempty"`
 }
 
-// PayRequest is request when send a payment
+// PayRequest is request when send a payment.
 type PayRequest struct {
 	AppId       string    `json:"appid"`
 	MchId       string    `json:"mchid"`
@@ -78,6 +100,7 @@ type PayRequest struct {
 	TradeType TradeType     `json:"-"`
 }
 
+// TradeType is trade type and defined by wechat pay.
 type TradeType string
 
 const (
@@ -87,7 +110,7 @@ const (
 	Native TradeType = "NATIVE"
 )
 
-// PayResponse is response when send a payment
+// PayResponse is response when send a payment.
 type PayResponse struct {
 	// The CodeUrl is returned when the merchant used Native
 	CodeUrl string `json:"code_url"`
@@ -97,7 +120,7 @@ type PayResponse struct {
 	H5Url string `json:"h5_url"`
 }
 
-// Pay send a transaction and invoke wechat payment
+// Pay send a transaction and invoke wechat payment.
 func (r *PayRequest) Do(ctx context.Context, c Client) (*PayResponse, error) {
 	if r.AppId == "" {
 		r.AppId = c.Config().AppId

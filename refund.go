@@ -42,7 +42,7 @@ type RefundAmount struct {
 	Currency string `json:"currency"`
 }
 
-// RefundGoodDetail is the good information about refund transaction
+// RefundGoodDetail is the good information about refund transaction.
 type RefundGoodDetail struct {
 	MerchantGoodsId  string `json:"merchant_goods_id"`
 	WechatpayGoodsId string `json:"wechatpay_goods_id,omitempty"`
@@ -52,7 +52,7 @@ type RefundGoodDetail struct {
 	RefundQuantity   int    `json:"refund_quantity"`
 }
 
-// RefundResponse is the response for refund transaction
+// RefundResponse is the response for refund transaction.
 type RefundResponse struct {
 	RefundId            string    `json:"refund_id"`
 	OutRefundNo         string    `json:"out_refund_no"`
@@ -81,7 +81,7 @@ type RefundAmountInQueryResp struct {
 	Currency         string `json:"currency"`
 }
 
-// RefundPromotionDetail is the promotion information about refund transaction
+// RefundPromotionDetail is the promotion information about refund transaction.
 type RefundPromotionDetail struct {
 	PromotionId  int    `json:"promotion_id"`
 	Scope        string `json:"scope"`
@@ -92,7 +92,7 @@ type RefundPromotionDetail struct {
 	GoodsDetail []RefundGoodDetail `json:"goods_detail,omitempty"`
 }
 
-// Do send the refund request and return refund response
+// Do send the refund request and return refund response.
 func (r *RefundRequest) Do(ctx context.Context, c Client) (*RefundResponse, error) {
 	url := r.url(c.Config().Options().Domain)
 

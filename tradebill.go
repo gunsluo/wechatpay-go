@@ -29,14 +29,14 @@ import (
 	"time"
 )
 
-// TradeBillRequest is the request for trade bill
+// TradeBillRequest is the request for trade bill.
 type TradeBillRequest struct {
 	BillDate string   `json:"-"`
 	BillType BillType `json:"-"`
 	TarType  TarType  `json:"-"`
 }
 
-// TradeBillResponse is the response for trade bill
+// TradeBillResponse is the response for trade bill.
 type TradeBillResponse struct {
 	Summary TradeBillSummary
 	Refund  []*RefundTradeBill
@@ -44,7 +44,7 @@ type TradeBillResponse struct {
 	Success []*SuccessTradeBill
 }
 
-// Do send the request and get download url
+// Do send the request and get download url.
 func (r *TradeBillRequest) Do(ctx context.Context, c Client) (*FileUrl, error) {
 	if err := r.validate(); err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (r *TradeBillRequest) Do(ctx context.Context, c Client) (*FileUrl, error) {
 	return fileUrl, nil
 }
 
-// Download download original the data of trade bill
+// Download download original the data of trade bill.
 func (r *TradeBillRequest) Download(ctx context.Context, c Client) ([]byte, error) {
 	fileUrl, err := r.Do(ctx, c)
 	if err != nil {
@@ -93,7 +93,7 @@ func (r *TradeBillRequest) Download(ctx context.Context, c Client) ([]byte, erro
 	return data, nil
 }
 
-// UnmarshalDownload download and unmarshal the data of trade bill
+// UnmarshalDownload download and unmarshal the data of trade bill.
 func (r *TradeBillRequest) UnmarshalDownload(ctx context.Context, c Client) (*TradeBillResponse, error) {
 	data, err := r.Download(ctx, c)
 	if err != nil {
@@ -212,7 +212,7 @@ const (
 	GZIP       TarType = "GZIP"
 )
 
-// TradeBillSummary is summary trade bill
+// TradeBillSummary is summary trade bill.
 type TradeBillSummary struct {
 	TotalNumberOfTransactions int
 	TotalSettlementFee        float64
@@ -277,7 +277,7 @@ func UnmarshalTradeBillSummary(values []string) (*TradeBillSummary, error) {
 	return summary, nil
 }
 
-// RefundTradeBill is data for refund trade bill
+// RefundTradeBill is data for refund trade bill.
 type RefundTradeBill struct {
 	TradeTime          string
 	AppId              string
@@ -311,7 +311,7 @@ type RefundTradeBill struct {
 }
 
 // UnmarshalRefundTradeBill parses the bill data
-// and stores the result in the bill .
+// and stores the result in the bill.
 func UnmarshalRefundTradeBill(values []string) (*RefundTradeBill, error) {
 	if len(values) != 29 {
 		return nil, errors.New("values length is invalid")
@@ -387,7 +387,7 @@ func UnmarshalRefundTradeBill(values []string) (*RefundTradeBill, error) {
 	return b, nil
 }
 
-// AllTradeBill is data for all trade bill
+// AllTradeBill is data for all trade bill.
 type AllTradeBill struct {
 	TradeTime          string
 	AppId              string
@@ -419,7 +419,7 @@ type AllTradeBill struct {
 }
 
 // UnmarshalAllTradeBill parses the bill data
-// and stores the result in the bill .
+// and stores the result in the bill.
 func UnmarshalAllTradeBill(values []string) (*AllTradeBill, error) {
 	if len(values) != 27 {
 		return nil, errors.New("values length is invalid")
@@ -493,7 +493,7 @@ func UnmarshalAllTradeBill(values []string) (*AllTradeBill, error) {
 	return b, nil
 }
 
-// SuccessTradeBill is data for success trade bill
+// SuccessTradeBill is data for success trade bill.
 type SuccessTradeBill struct {
 	TradeTime          string
 	AppId              string
@@ -518,7 +518,7 @@ type SuccessTradeBill struct {
 }
 
 // UnmarshalSuccessTradeBill parses the bill data
-// and stores the result in the bill .
+// and stores the result in the bill.
 func UnmarshalSuccessTradeBill(values []string) (*SuccessTradeBill, error) {
 	if len(values) != 20 {
 		return nil, errors.New("values length is invalid")

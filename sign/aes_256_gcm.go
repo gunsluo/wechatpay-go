@@ -20,7 +20,9 @@ import (
 	"encoding/base64"
 )
 
-// DecryptByAes256Gcm uses algorithm aes-256-gcm to decrypt text
+// DecryptByAes256Gcm uses algorithm aes-256-gcm to decrypt text.
+// The key argument should be the AES key, either 16, 24, or
+// 32 bytes to select AES-128, AES-192, or AES-256.
 func DecryptByAes256Gcm(key, nonce, additionalData []byte, cipherText string) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -46,7 +48,8 @@ func DecryptByAes256Gcm(key, nonce, additionalData []byte, cipherText string) ([
 }
 
 // EncryptByAes256Gcm uses algorithm aes-256-gcm to encrypt text
-// and return a base64 string
+// and return a base64 string. The key argument should be the AES key,
+// either 16, 24, or 32 bytes to select AES-128, AES-192, or AES-256.
 func EncryptByAes256Gcm(key, nonce, additionalData []byte, plainText string) (string, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {

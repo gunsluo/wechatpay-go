@@ -15,13 +15,14 @@
 package sign
 
 import (
+	"fmt"
 	"testing"
 )
 
 func TestEncryptByAes256Gcm(t *testing.T) {
 	cases := []struct {
 		key    []byte
-		noce   []byte
+		nonce  []byte
 		data   []byte
 		text   string
 		expect bool
@@ -43,7 +44,7 @@ func TestEncryptByAes256Gcm(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		_, err := EncryptByAes256Gcm(c.key, c.noce, c.data, c.text)
+		_, err := EncryptByAes256Gcm(c.key, c.nonce, c.data, c.text)
 		expect := err == nil
 		if c.expect != expect {
 			t.Fatalf("expect %v, got %v, %v", c.expect, expect, err)
@@ -54,7 +55,7 @@ func TestEncryptByAes256Gcm(t *testing.T) {
 func TestDecryptByAes256Gcm(t *testing.T) {
 	cases := []struct {
 		key    []byte
-		noce   []byte
+		nonce  []byte
 		data   []byte
 		secret string
 		expect bool
@@ -90,7 +91,7 @@ func TestDecryptByAes256Gcm(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		_, err := DecryptByAes256Gcm(c.key, c.noce, c.data, c.secret)
+		_, err := DecryptByAes256Gcm(c.key, c.nonce, c.data, c.secret)
 		expect := err == nil
 		if c.expect != expect {
 			t.Fatalf("expect %v, got %v, %v", c.expect, expect, err)
@@ -100,10 +101,10 @@ func TestDecryptByAes256Gcm(t *testing.T) {
 
 func TestAes256Gcm(t *testing.T) {
 	cases := []struct {
-		key  []byte
-		noce []byte
-		data []byte
-		text string
+		key   []byte
+		nonce []byte
+		data  []byte
+		text  string
 	}{
 		{
 			[]byte("AES256Key-32Characters1234567890"),
@@ -114,12 +115,12 @@ func TestAes256Gcm(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		secret, err := EncryptByAes256Gcm(c.key, c.noce, c.data, c.text)
+		secret, err := EncryptByAes256Gcm(c.key, c.nonce, c.data, c.text)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		plain, err := DecryptByAes256Gcm(c.key, c.noce, c.data, secret)
+		plain, err := DecryptByAes256Gcm(c.key, c.nonce, c.data, secret)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -129,4 +130,27 @@ func TestAes256Gcm(t *testing.T) {
 			t.Fatal("invalid aes-256-gcm")
 		}
 	}
+}
+
+func ExampleEncryptByAes256Gcm() {
+	key := []byte("AES256Key-32Characters1234567890")
+	nonce := []byte("eabb3e044577")
+	data := []byte("certificate")
+	text := "exampleplaintext"
+	ciphertext, _ := EncryptByAes256Gcm(key, nonce, data, text)
+	fmt.Println(ciphertext)
+	// Output:
+	// tJjSQMG758oX39qpn/RoZPZ3qh8LRIIwcnQeFhU/alQ=
+}
+
+func ExampleDecryptByAes256Gcm() {
+	key := []byte("AES256Key-32Characters1234567890")
+	nonce := []byte("eabb3e044577")
+	data := []byte("certificate")
+	ciphertext := "tJjSQMG758oX39qpn/RoZPZ3qh8LRIIwcnQeFhU/alQ="
+
+	plaintext, _ := DecryptByAes256Gcm(key, nonce, data, ciphertext)
+	fmt.Println(string(plaintext))
+	// Output:
+	// exampleplaintext
 }

@@ -21,7 +21,7 @@ import (
 	"time"
 )
 
-// RefundQueryResponse is the result for refund query
+// RefundQueryResponse is the result for refund query.
 type RefundQueryResponse struct {
 	RefundID            string                       `json:"refund_id"`
 	OutRefundNo         string                       `json:"out_refund_no"`
@@ -37,6 +37,7 @@ type RefundQueryResponse struct {
 	PromotionDetail     []RefundQueryPromotionDetail `json:"promotion_detail"`
 }
 
+// RefundQueryAmount is the amount of the refund transcation.
 type RefundQueryAmount struct {
 	Total            int    `json:"total"`
 	Refund           int    `json:"refund"`
@@ -48,6 +49,7 @@ type RefundQueryAmount struct {
 	Currency         string `json:"currency"`
 }
 
+// GoodsDetail is a list of goods detail.
 type GoodsDetail struct {
 	MerchantGoodsID  string `json:"merchant_goods_id"`
 	WechatpayGoodsID string `json:"wechatpay_goods_id"`
@@ -57,6 +59,7 @@ type GoodsDetail struct {
 	RefundQuantity   int    `json:"refund_quantity"`
 }
 
+// RefundQueryPromotionDetail is the promotion detail of refund.
 type RefundQueryPromotionDetail struct {
 	PromotionID  string        `json:"promotion_id"`
 	Scope        string        `json:"scope"`
@@ -66,12 +69,12 @@ type RefundQueryPromotionDetail struct {
 	GoodsDetail  []GoodsDetail `json:"goods_detail"`
 }
 
-// RefundQueryRequest is the request for query transaction
+// RefundQueryRequest is the request for query transaction.
 type RefundQueryRequest struct {
 	OutRefundNo string `json:"-"`
 }
 
-// Do send the refund query result
+// Do send the refund query result.
 func (r *RefundQueryRequest) Do(ctx context.Context, c Client) (*RefundQueryResponse, error) {
 	url := r.url(c.Config().Options().Domain)
 
