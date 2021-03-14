@@ -216,6 +216,22 @@ func TestDoForCombinePay(t *testing.T) {
 			nil,
 			false,
 		},
+		{
+			&CombinePayRequest{
+				AppId:      client.config.AppId,
+				MchId:      client.config.MchId,
+				OutTradeNo: "forxxxxxxxxx",
+				TimeStart:  time.Now(),
+				TimeExpire: time.Now().Add(10 * time.Minute),
+				NotifyUrl:  "https://luoji.live/notify",
+				Orders:     []SubOrder{},
+			},
+			&CombinePayResponse{
+				CodeUrl: "weixin://wxpay/bizpayurl/up?pr=NwY5Mz9&groupid=00",
+			},
+			nil,
+			false,
+		},
 	}
 
 	ctx := context.Background()
