@@ -60,7 +60,7 @@ func (r *TradeBillRequest) Do(ctx context.Context, c Client) (*FileUrl, error) {
 	return fileUrl, nil
 }
 
-// Download download original the data of trade bill.
+// Download download plain text of trade bill.
 func (r *TradeBillRequest) Download(ctx context.Context, c Client) ([]byte, error) {
 	fileUrl, err := r.Do(ctx, c)
 	if err != nil {

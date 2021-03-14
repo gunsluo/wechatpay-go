@@ -121,6 +121,7 @@ func (r *QueryRequest) Do(ctx context.Context, c Client) (*QueryResponse, error)
 	return resp, nil
 }
 
+// return the url according to querying parameters.
 func (r *QueryRequest) url(domain string) string {
 	if r.TransactionId != "" {
 		return domain + "/v3/pay/transactions/id/" + r.TransactionId + "?mchid=" + r.MchId

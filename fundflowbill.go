@@ -80,7 +80,7 @@ func (r *FundFlowBillRequest) Do(ctx context.Context, c Client) (*FileUrl, error
 	return fileUrl, nil
 }
 
-// Download download original the data of fundflow bill.
+// Download download plain text of fundflow bill.
 func (r *FundFlowBillRequest) Download(ctx context.Context, c Client) ([]byte, error) {
 	fileUrl, err := r.Do(ctx, c)
 	if err != nil {

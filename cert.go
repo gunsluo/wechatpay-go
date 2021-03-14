@@ -19,11 +19,11 @@ import (
 	"net/http"
 )
 
-// CertificatesRequest is the request about certificates.
+// CertificatesRequest is the request for certificates.
 type CertificatesRequest struct {
 }
 
-// CertificatesResponse is the response about certificates.
+// CertificatesResponse is the response for certificates.
 type CertificatesResponse struct {
 	Certificates []Certificate `json:"data"`
 }

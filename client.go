@@ -50,6 +50,9 @@ type client struct {
 // NewClient creates a new client with configuration from cfg.
 // Config includes App Id/Mech Id/Apiv3 Secret/Serial Number
 // and Private Key Cert.
+// Create a new client:
+//	client, err := NewClient(Config{})
+//	// check error
 func NewClient(cfg Config, opts ...Option) (Client, error) {
 	return newClient(cfg, opts...)
 }

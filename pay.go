@@ -120,7 +120,7 @@ type PayResponse struct {
 	H5Url string `json:"h5_url"`
 }
 
-// Pay send a transaction and invoke wechat payment.
+// Do send a transaction and invoke wechat payment.
 func (r *PayRequest) Do(ctx context.Context, c Client) (*PayResponse, error) {
 	if r.AppId == "" {
 		r.AppId = c.Config().AppId
