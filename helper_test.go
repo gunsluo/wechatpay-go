@@ -139,6 +139,10 @@ var defaultMockDataMapping = map[string]func(*http.Request, *http.Response, *rsa
 	"/v3/invalidresp":                                               mockDataWithInvalidResp,
 	"/v3/invalidrespdata":                                           mockDataWithInvalidRespData,
 	"/v3/invalidheader":                                             mockDataWithInvalidHeader,
+
+	"/v3/combine-transactions/out-trade-no/fortest/close":               mockDataWithClose,
+	"/v3/combine-transactions/out-trade-no/S20210119074247105778399200": mockDataWithQueryCombinePay,
+	"/v3/combine-transactions/out-trade-no/S20210119NOTFOUND":           mockDataWithNotFoundQueryPay,
 }
 
 func defaultMockData(req *http.Request, privateKey *rsa.PrivateKey) (*http.Response, error) {
@@ -227,6 +231,34 @@ func mockDataWithCombinPay(req *http.Request, resp *http.Response, privateKey *r
 
 func mockDataWithQueryPay(req *http.Request, resp *http.Response, privateKey *rsa.PrivateKey) error {
 	mockBody := `{"appid":"wxd678efh567hg6787","mchid":"1230000109","out_trade_no":"S20210119074247105778399200","transaction_id":"4200000914202101195554393855","trade_type":"NATIVE","trade_state":"SUCCESS","trade_state_desc":"支付成功","bank_type":"OTHERS","success_time":"2021-01-19T15:43:01+08:00","payer":{"openid":"ofyak5qYxYJVnhTlrkk_ACWIVrHI"},"amount":{"total":1,"payer_total":1,"currency":"CNY","payer_currency":"CNY"}}`
+	// mock certificates signature
+	mockResp := &sign.ResponseSignature{
+		Body:      []byte(mockBody),
+		Timestamp: mockTimestamp,
+		Nonce:     mockNonce,
+	}
+	plain, err := mockResp.Marshal()
+	if err != nil {
+		return err
+	}
+
+	signature, err := sign.SignatureSHA256WithRSA(privateKey, plain)
+	if err != nil {
+		return err
+	}
+
+	resp.Header = http.Header{}
+	resp.Header.Set("Wechatpay-Nonce", mockNonce)
+	resp.Header.Set("Wechatpay-Signature", signature)
+	resp.Header.Set("Wechatpay-Timestamp", strconv.FormatInt(mockTimestamp, 10))
+	resp.Header.Set("Wechatpay-Serial", mockSerialNo)
+	resp.Body = ioutil.NopCloser(strings.NewReader(mockBody))
+
+	return nil
+}
+
+func mockDataWithQueryCombinePay(req *http.Request, resp *http.Response, privateKey *rsa.PrivateKey) error {
+	mockBody := `{"combine_appid":"wxd678efh567hg6787","combine_mchid":"1230000109","combine_out_trade_no":"S20210119074247105778399200","sub_orders":[{"mchid":"1230000109","out_trade_no":"S20210119074247105778399201","trade_type":"NATIVE","trade_state":"SUCCESS","bank_type":"OTHERS","success_time":"2021-01-19T15:43:01+08:00","transaction_id":"4200000914202101195554393855","amount":{"total_amount":1,"payer_total":1,"currency":"CNY","payer_currency":"CNY"}}],"combine_payer_info":{"openid":"ofyak5qYxYJVnhTlrkk_ACWIVrHI"}}`
 	// mock certificates signature
 	mockResp := &sign.ResponseSignature{
 		Body:      []byte(mockBody),

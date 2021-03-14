@@ -256,3 +256,191 @@ func TestDoForCombinePay(t *testing.T) {
 		}
 	}
 }
+
+func TestCombineCloseRequestDo(t *testing.T) {
+	client, err := mockNewClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if client == nil {
+		t.Fatal("client is nil")
+	}
+
+	cases := []struct {
+		req       *CombineCloseRequest
+		transport *mockTransport
+		pass      bool
+	}{
+		{
+			&CombineCloseRequest{
+				AppId:      client.config.AppId,
+				OutTradeNo: "fortest",
+				Orders: []CloseSubOrder{
+					{
+						MchId:      client.config.MchId,
+						OutTradeNo: "fortest1",
+					},
+				},
+			},
+			nil,
+			true,
+		},
+		{
+			&CombineCloseRequest{
+				OutTradeNo: "fortest",
+				Orders: []CloseSubOrder{
+					{
+						MchId:      client.config.MchId,
+						OutTradeNo: "fortest1",
+					},
+				},
+			},
+			nil,
+			true,
+		},
+
+		{
+			&CombineCloseRequest{
+				OutTradeNo: "fortest",
+				Orders:     []CloseSubOrder{},
+			},
+			nil,
+			false,
+		},
+		{
+			&CombineCloseRequest{
+				AppId:      client.config.AppId,
+				OutTradeNo: "fortest",
+				Orders: []CloseSubOrder{
+					{
+						MchId:      client.config.MchId,
+						OutTradeNo: "fortest1",
+					},
+				},
+			},
+			&mockTransport{
+				RoundTripFn: func(req *http.Request) (*http.Response, error) {
+					var resp = &http.Response{
+						StatusCode: http.StatusOK,
+					}
+
+					resp.Header = http.Header{}
+					resp.Body = ioutil.NopCloser(strings.NewReader("{}"))
+					return resp, nil
+				},
+			},
+			false,
+		},
+	}
+
+	ctx := context.Background()
+	for _, c := range cases {
+		if c.transport != nil {
+			client.config.opts.transport = c.transport
+			client.secrets.clear()
+		}
+
+		err := c.req.Do(ctx, client)
+		pass := err == nil
+		if pass != c.pass {
+			t.Fatalf("expect %v, got %v, err: %v", c.pass, pass, err)
+		}
+
+		if err != nil {
+			continue
+		}
+	}
+}
+
+func TestDoForCombineQuery(t *testing.T) {
+	client, err := mockNewClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if client == nil {
+		t.Fatal("client is nil")
+	}
+
+	tm, err := time.Parse(time.RFC3339, "2021-01-19T15:43:01+08:00")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cases := []struct {
+		req       *CombineQueryRequest
+		resp      *CombineQueryResponse
+		transport *mockTransport
+		pass      bool
+	}{
+		{
+			&CombineQueryRequest{
+				OutTradeNo: "S20210119074247105778399200",
+			},
+			&CombineQueryResponse{
+				AppId:      "wxd678efh567hg6787",
+				MchId:      "1230000109",
+				OutTradeNo: "S20210119074247105778399200",
+				Orders: []QuerySubOrder{
+					{
+
+						MchId:         "1230000109",
+						OutTradeNo:    "S20210119074247105778399201",
+						TransactionId: "4200000914202101195554393855",
+						TradeType:     Native,
+						TradeState:    "SUCCESS",
+						BankType:      "OTHERS",
+						Attach:        "",
+						SuccessTime:   tm,
+						Amount: CombineSubOrderAmount{
+							Total:         1,
+							PayerTotal:    1,
+							Currency:      "CNY",
+							PayerCurrency: "CNY",
+						},
+					},
+				},
+				Payer: &Payer{OpenId: "ofyak5qYxYJVnhTlrkk_ACWIVrHI"},
+			},
+			nil,
+			true,
+		},
+		{
+			&CombineQueryRequest{},
+			&CombineQueryResponse{},
+			nil,
+			false,
+		},
+		{
+			&CombineQueryRequest{
+				OutTradeNo: "S20210119NOTFOUND",
+			},
+			&CombineQueryResponse{},
+			nil,
+			false,
+		},
+	}
+
+	ctx := context.Background()
+	for _, c := range cases {
+		if c.transport != nil {
+			client.config.opts.transport = c.transport
+			client.secrets.clear()
+		}
+
+		resp, err := c.req.Do(ctx, client)
+		pass := err == nil
+		if pass != c.pass {
+			t.Fatalf("expect %v, got %v, err: %v", c.pass, pass, err)
+		}
+
+		if err != nil {
+			continue
+		}
+
+		if !reflect.DeepEqual(c.resp, resp) {
+			t.Fatalf("expect %v, got %v", c.resp, resp)
+		}
+	}
+}
