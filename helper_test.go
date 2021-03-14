@@ -122,6 +122,11 @@ var defaultMockDataMapping = map[string]func(*http.Request, *http.Response, *rsa
 	"/v3/pay/transactions/h5":     mockDataWithPay,
 	"/v3/pay/transactions/jsapi":  mockDataWithPay,
 
+	"/v3/combine-transactions/native": mockDataWithCombinPay,
+	"/v3/combine-transactions/app":    mockDataWithCombinPay,
+	"/v3/combine-transactions/h5":     mockDataWithCombinPay,
+	"/v3/combine-transactions/jsapi":  mockDataWithCombinPay,
+
 	"/v3/pay/transactions/id/4200000914202101195554393855":          mockDataWithQueryPay,
 	"/v3/pay/transactions/out-trade-no/S20210119074247105778399200": mockDataWithQueryPay,
 	"/v3/pay/transactions/out-trade-no/S20210119NOTFOUND":           mockDataWithNotFoundQueryPay,
@@ -214,6 +219,10 @@ func mockDataWithPay(req *http.Request, resp *http.Response, privateKey *rsa.Pri
 	resp.Body = ioutil.NopCloser(strings.NewReader(mockBody))
 
 	return nil
+}
+
+func mockDataWithCombinPay(req *http.Request, resp *http.Response, privateKey *rsa.PrivateKey) error {
+	return mockDataWithPay(req, resp, privateKey)
 }
 
 func mockDataWithQueryPay(req *http.Request, resp *http.Response, privateKey *rsa.PrivateKey) error {
