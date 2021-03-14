@@ -30,6 +30,9 @@ When developing, you can use the `Makefile` for doing the following operations:
 | `refund`           | Merchant send the refund transaction                             |   :heavy_check_mark:   |
 | `refundquery`      | Merchant query payment transactions                              |   :heavy_check_mark:   |
 | `refundnotify`     | WeChat Pay notifies the merchant of the refund status            |   :heavy_check_mark:   |
+| `combine pay`      | Merchant send the combine payment, includes some sub transcation |   :heavy_check_mark:   |
+| `combine close`    | Merchant close the combine payment transactions                  |   :heavy_check_mark:   |
+| `combine query`    | Merchant query the combine payment transaction                   |   :heavy_check_mark:   |
 
 
 ## Getting Started
@@ -145,12 +148,6 @@ data, err := req.Download(ctx, payClient)
 //resp, err := req.UnmarshalDownload(ctx, payClient)
 ```
 
-
-## TODO
-
-* Pay combine transactions
-* Close combine transactions
-* Query combine transactions
 
 ## Contributing
 
