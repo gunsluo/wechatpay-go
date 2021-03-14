@@ -105,3 +105,40 @@ func (r *CombinePayRequest) Do(ctx context.Context, c Client) (*CombinePayRespon
 func (r *CombinePayRequest) url(domain string) string {
 	return domain + "/v3/combine-transactions/" + strings.ToLower(string(r.TradeType))
 }
+
+// CloseSubOrder is the order under the combine close transcation
+type CloseSubOrder struct {
+	MchId      string `json:"mchid"`
+	OutTradeNo string `json:"out_trade_no"`
+}
+
+// CombineCloseRequest is the request for close transaction.
+type CombineCloseRequest struct {
+	AppId      string          `json:"combine_appid"`
+	OutTradeNo string          `json:"combine_out_trade_no"`
+	Orders     []CloseSubOrder `json:"sub_orders,omitempty"`
+}
+
+// Do send the request of combine close transaction.
+func (r *CombineCloseRequest) Do(ctx context.Context, c Client) error {
+	if r.AppId == "" {
+		r.AppId = c.Config().AppId
+	}
+
+	if len(r.Orders) == 0 {
+		return errors.New("orders is required")
+	}
+
+	url := r.url(c.Config().Options().Domain)
+
+	if err := c.Do(ctx, http.MethodPost, url, r).Error(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// return the url for combine close transcation
+func (r *CombineCloseRequest) url(domain string) string {
+	return domain + "/v3/combine-transactions/out-trade-no/" + r.OutTradeNo + "/close"
+}

@@ -256,3 +256,99 @@ func TestDoForCombinePay(t *testing.T) {
 		}
 	}
 }
+
+func TestCombineCloseRequestDo(t *testing.T) {
+	client, err := mockNewClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if client == nil {
+		t.Fatal("client is nil")
+	}
+
+	cases := []struct {
+		req       *CombineCloseRequest
+		transport *mockTransport
+		pass      bool
+	}{
+		{
+			&CombineCloseRequest{
+				AppId:      client.config.AppId,
+				OutTradeNo: "fortest",
+				Orders: []CloseSubOrder{
+					{
+						MchId:      client.config.MchId,
+						OutTradeNo: "fortest1",
+					},
+				},
+			},
+			nil,
+			true,
+		},
+		{
+			&CombineCloseRequest{
+				OutTradeNo: "fortest",
+				Orders: []CloseSubOrder{
+					{
+						MchId:      client.config.MchId,
+						OutTradeNo: "fortest1",
+					},
+				},
+			},
+			nil,
+			true,
+		},
+
+		{
+			&CombineCloseRequest{
+				OutTradeNo: "fortest",
+				Orders:     []CloseSubOrder{},
+			},
+			nil,
+			false,
+		},
+		{
+			&CombineCloseRequest{
+				AppId:      client.config.AppId,
+				OutTradeNo: "fortest",
+				Orders: []CloseSubOrder{
+					{
+						MchId:      client.config.MchId,
+						OutTradeNo: "fortest1",
+					},
+				},
+			},
+			&mockTransport{
+				RoundTripFn: func(req *http.Request) (*http.Response, error) {
+					var resp = &http.Response{
+						StatusCode: http.StatusOK,
+					}
+
+					resp.Header = http.Header{}
+					resp.Body = ioutil.NopCloser(strings.NewReader("{}"))
+					return resp, nil
+				},
+			},
+			false,
+		},
+	}
+
+	ctx := context.Background()
+	for _, c := range cases {
+		if c.transport != nil {
+			client.config.opts.transport = c.transport
+			client.secrets.clear()
+		}
+
+		err := c.req.Do(ctx, client)
+		pass := err == nil
+		if pass != c.pass {
+			t.Fatalf("expect %v, got %v, err: %v", c.pass, pass, err)
+		}
+
+		if err != nil {
+			continue
+		}
+	}
+}

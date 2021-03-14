@@ -139,6 +139,8 @@ var defaultMockDataMapping = map[string]func(*http.Request, *http.Response, *rsa
 	"/v3/invalidresp":                                               mockDataWithInvalidResp,
 	"/v3/invalidrespdata":                                           mockDataWithInvalidRespData,
 	"/v3/invalidheader":                                             mockDataWithInvalidHeader,
+
+	"/v3/combine-transactions/out-trade-no/fortest/close": mockDataWithClose,
 }
 
 func defaultMockData(req *http.Request, privateKey *rsa.PrivateKey) (*http.Response, error) {
