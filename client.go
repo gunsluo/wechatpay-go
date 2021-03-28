@@ -33,6 +33,7 @@ import (
 
 // client is wechat pay client for api v3.
 type Client interface {
+	API
 	Config() *Config
 	Do(context.Context, string, string, ...interface{}) *Result
 	ParseNotification(context.Context, *Result) (*Notification, []byte, error)
