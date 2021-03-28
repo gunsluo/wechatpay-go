@@ -753,7 +753,7 @@ func TestClientCombineClose(t *testing.T) {
 
 	ctx := context.Background()
 	for _, c := range cases {
-		err := c.req.Do(ctx, client)
+		err := client.CombineClose(ctx, c.req)
 		pass := err == nil
 		if pass != c.pass {
 			t.Fatalf("expect %v, got %v, err: %v", c.pass, pass, err)

@@ -101,6 +101,7 @@ req := &wechatpay.PayRequest{
 }
 
 resp, err := req.Do(r.Context(), payClient)
+//resp, err := payClient(r.Context(), req)
 if err != nil {
     e := &wechatpay.Error{}
     if errors.As(err, &e) {
@@ -145,6 +146,7 @@ req := wechatpay.TradeBillRequest{
 
 ctx := context.Background()
 data, err := req.Download(ctx, payClient)
+//data, err := payClient.DownloadTradeBill(ctx, req)
 //resp, err := req.UnmarshalDownload(ctx, payClient)
 ```
 
